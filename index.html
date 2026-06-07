@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Pawn's Ascension</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="wrapper">
+    <canvas id="gameCanvas"></canvas>
+    <div id="controller">
+      <div id="dpad">
+        <div class="dpad-row top-row">
+          <button class="ctrl-btn dpad-btn" id="btn-up">▲</button>
+        </div>
+        <div class="dpad-row mid-row">
+          <button class="ctrl-btn dpad-btn" id="btn-left">◄</button>
+          <div class="dpad-mid"></div>
+          <button class="ctrl-btn dpad-btn" id="btn-right">►</button>
+        </div>
+        <div class="dpad-row bot-row">
+          <button class="ctrl-btn dpad-btn" id="btn-down">▼</button>
+        </div>
+      </div>
+
+      <div id="center-btns">
+        <button class="ctrl-btn sys-btn" id="btn-pause">II</button>
+      </div>
+
+      <div id="action-pad">
+        <div class="act-row">
+          <button class="ctrl-btn act-btn locked" id="btn-shield" title="Shield [E]">🛡</button>
+          <button class="ctrl-btn act-btn locked" id="btn-spear"  title="Spear [Q]">🗡</button>
+        </div>
+        <div class="act-row">
+          <button class="ctrl-btn act-btn locked" id="btn-dash"   title="Dash [Shift]">»</button>
+          <button class="ctrl-btn act-btn"         id="btn-attack" title="Attack [Z]">⚔</button>
+        </div>
+        <div class="act-row jump-row">
+          <button class="ctrl-btn jump-btn"         id="btn-jump"   title="Jump [Space/↑]">JUMP</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/draw.js"></script>
+  <script src="js/physics.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/enemies.js"></script>
+  <script src="js/platforms.js"></script>
+  <script src="js/wave.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
