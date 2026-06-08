@@ -33,6 +33,7 @@ var Save = {
   // State
   var state = STATE.MENU;
   var menuCursor = 0;       // 0=black, 1=white
+  var bardCursor = 0;       // 0=save, 1=continue
   var player = null;
   var wm = WaveManager.create();
   var waveIndex = 0;        // 0-based
@@ -132,35 +133,30 @@ var Save = {
     }
 
     if (state === STATE.BARD) {
-      // S or Enter = save; Escape = skip
-      if (inp.attackJustPressed || (inp.down && inp.jumpJustPressed)) {
-        // Save
-        var abList = Object.keys(player.abilities).filter(function(a){ return player.abilities[a]; });
-        Save.save({
-          wave: waveIndex + 1,   // next wave
-          color: player.color,
-          hp: player.hp,
-          abilities: abList,
-        });
-        Audio.save();
-        // Proceed
+      // Navigate with up/down or jump/shield
+      if (inp.jumpJustPressed || inp.leftJustPressed)   bardCursor = 0;
+      if (inp.shieldJustPressed || inp.rightJustPressed) bardCursor = 1;
+
+      function proceedFromBard() {
         if (waveIndex + 1 < C.WAVES.length) {
           beginWave(waveIndex + 1);
         } else {
-          state = STATE.VICTORY;
-          victoryTimer = 0;
-          Audio.victory();
+          state = STATE.VICTORY; victoryTimer = 0; Audio.victory();
         }
       }
-      if (inp.pauseJustPressed) {
-        // Skip save
-        if (waveIndex + 1 < C.WAVES.length) {
-          beginWave(waveIndex + 1);
-        } else {
-          state = STATE.VICTORY;
-          victoryTimer = 0;
-          Audio.victory();
+
+      if (inp.attackJustPressed) {
+        if (bardCursor === 0) {
+          // Save
+          var abList = Object.keys(player.abilities).filter(function(a){ return player.abilities[a]; });
+          Save.save({ wave: waveIndex+1, color: player.color, hp: player.hp, abilities: abList });
+          Audio.save();
         }
+        proceedFromBard();
+      }
+      if (inp.pauseJustPressed) {
+        bardCursor = 1;
+        proceedFromBard();
       }
       return inp;
     }
@@ -211,7 +207,7 @@ var Save = {
       if (WaveManager.allDefeated(wm)) {
         var waveData = WaveManager.currentWaveData(wm);
         applyUnlock(waveData);
-        Player.heal(player, C.WAVE_HEAL);
+        Player.heal(player, player.maxHp);
 
         if (waveIndex === C.WAVES.length - 1) {
           // Final wave cleared
@@ -249,7 +245,7 @@ var Save = {
 
     // Wave playing / clear / bard / paused
     if (state === STATE.BARD) {
-      UI.drawBard(ctx, player, waveIndex, wm.theme, 0);
+      UI.drawBard(ctx, player, waveIndex, wm.theme, bardCursor);
       return;
     }
 
@@ -277,20 +273,15 @@ var Save = {
     }
   }
 
-  // ── Keyboard shortcuts for bard / special screens ─────────────────────────
+  // S key as shorthand for save on bard screen
   document.addEventListener('keydown', function(e) {
-    if (state === STATE.BARD) {
-      if (e.code === 'KeyS' || e.code === 'Enter') {
-        // Trigger save via input system — already handled above via attackJustPressed
-        // But 'S' key isn't attack, so handle here directly
-        if (e.code === 'KeyS') {
-          var abList = Object.keys(player.abilities).filter(function(a){ return player.abilities[a]; });
-          Save.save({ wave: waveIndex+1, color: player.color, hp: player.hp, abilities: abList });
-          Audio.save();
-          if (waveIndex+1 < C.WAVES.length) beginWave(waveIndex+1);
-          else { state=STATE.VICTORY; victoryTimer=0; Audio.victory(); }
-        }
-      }
+    if (state === STATE.BARD && e.code === 'KeyS') {
+      bardCursor = 0;
+      var abList = Object.keys(player.abilities).filter(function(a){ return player.abilities[a]; });
+      Save.save({ wave: waveIndex+1, color: player.color, hp: player.hp, abilities: abList });
+      Audio.save();
+      if (waveIndex+1 < C.WAVES.length) beginWave(waveIndex+1);
+      else { state=STATE.VICTORY; victoryTimer=0; Audio.victory(); }
     }
   });
 
@@ -328,5 +319,11 @@ var Save = {
              enemies: wm.enemies.length,
              allSpawned: wm.allSpawned,
              spawnQ: wm.spawnQueue ? wm.spawnQueue.length : null };
+  };
+  window._setTestState = function(s, wi) {
+    state = s;
+    if (wi !== undefined) waveIndex = wi;
+    if (!player) player = Player.create('#000000');
+    if (!wm.theme) wm.theme = C.THEME.dark;
   };
 })();

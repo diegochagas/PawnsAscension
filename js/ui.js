@@ -155,31 +155,36 @@ var UI = (function() {
   }
 
   // ── Bard save screen ───────────────────────────────────────────────────────
-  function drawBard(ctx, player, waveIndex, theme, bardAnim) {
+  function drawBard(ctx, player, waveIndex, theme, cursor) {
     var fg = theme.ui, bg = theme.bg;
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, C.W, C.H);
 
-    // Bard centred
-    var cx = C.W/2, cy = C.H/2 + 50;
-    Draw.bard(ctx, cx, cy, 120, fg);
+    var cx = C.W/2;
 
-    // Speech bubble
+    // Speech bubble text at top
     ctx.fillStyle = fg;
     ctx.font = FONT_MED;
     ctx.textAlign = 'center';
-    ctx.fillText('"Shall I record your tale,', cx, cy - 140);
-    ctx.fillText('brave piece?"', cx, cy - 110);
+    ctx.fillText('"Shall I record your tale,', cx, 100);
+    ctx.fillText('brave pawn?"', cx, 132);
 
-    ctx.font = FONT_SMALL;
-    ctx.fillStyle = fg;
-    ctx.fillText('[S] or [ENTER]  →  SAVE', cx, cy + 90);
-    ctx.fillText('[ESC]           →  CONTINUE without saving', cx, cy + 114);
+    // Bard figure below the text
+    Draw.bard(ctx, cx, 310, 130, fg);
 
-    // Save note
+    // Options
+    var optY = 370;
+    var opts = ['SAVE  [S / ENTER]', 'CONTINUE  [ESC]'];
+    opts.forEach(function(label, i) {
+      var selected = cursor === i;
+      ctx.font = selected ? 'bold ' + FONT_MED : FONT_SMALL;
+      ctx.fillStyle = selected ? fg : (fg === '#ffffff' ? '#888' : '#666');
+      ctx.fillText((selected ? '► ' : '  ') + label + (selected ? ' ◄' : ''), cx, optY + i * 36);
+    });
+
     ctx.font = FONT_TINY;
-    ctx.fillStyle = theme === C.THEME.light ? '#555' : '#aaa';
-    ctx.fillText('Progress saved to browser storage', cx, cy + 140);
+    ctx.fillStyle = fg === '#ffffff' ? '#666' : '#aaa';
+    ctx.fillText('↑ ↓  or  ← →  to navigate   ENTER / Z to confirm', cx, C.H - 18);
     ctx.textAlign = 'left';
   }
 

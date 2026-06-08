@@ -4,7 +4,7 @@ var Input = (function() {
     attack:false, jump:false, dash:false, spear:false, shield:false, pause:false,
     attackJustPressed:false, jumpJustPressed:false, dashJustPressed:false,
     spearJustPressed:false, pauseJustPressed:false,
-    leftJustPressed:false, rightJustPressed:false,
+    leftJustPressed:false, rightJustPressed:false, shieldJustPressed:false,
   };
   var prev = {};
 
@@ -16,12 +16,12 @@ var Input = (function() {
 
   // Keyboard map
   var keyMap = {
-    ArrowLeft:'left', KeyA:'left',
+    ArrowLeft:'left',  KeyA:'left',
     ArrowRight:'right', KeyD:'right',
-    ArrowUp:'up', KeyW:'up', Space:'jump',
-    ArrowDown:'down', KeyS:'down',
+    ArrowUp:'jump',  KeyW:'jump', Space:'jump',
+    ArrowDown:'shield', KeyS:'down',
     KeyZ:'attack', Enter:'attack',
-    ShiftLeft:'dash', ShiftRight:'dash',
+    ShiftLeft:'dash', ShiftRight:'dash', KeyX:'dash',
     KeyQ:'spear',
     KeyE:'shield',
     Escape:'pause', KeyP:'pause',
@@ -93,8 +93,9 @@ var Input = (function() {
       state.dashJustPressed  = state.dash   && !prev.dash;
       state.spearJustPressed = state.spear  && !prev.spear;
       state.pauseJustPressed = state.pause  && !prev.pause;
-      state.leftJustPressed  = state.left   && !prev.left;
-      state.rightJustPressed = state.right  && !prev.right;
+      state.leftJustPressed   = state.left   && !prev.left;
+      state.rightJustPressed  = state.right  && !prev.right;
+      state.shieldJustPressed = state.shield && !prev.shield;
       prev = copyState();
     },
     unlockAbility: function(ability) {

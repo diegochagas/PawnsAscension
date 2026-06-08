@@ -12,16 +12,53 @@ var Enemies = (function() {
       hp: cfg.hp, maxHp: cfg.hp,
       spd: cfg.spd,
       dmg: cfg.dmg,
-      ar: cfg.ar,   // attack range
-      ac: cfg.ac,   // attack cooldown (frames)
+      ar: cfg.ar,
+      ac: cfg.ac,
       atkCd: 0,
+      atkTimer: 0,    // frames left in swing animation
+      atkHit: false,  // whether damage was dealt this swing
+      attacking: false,
       iframes: 0,
-      facing: -1,   // faces player
+      facing: -1,
       dead: false,
       shielding: false,
       aiTimer: 0,
       aiState: 'patrol',
     };
+  }
+
+  // ── Shared attack helpers ─────────────────────────────────────────────────
+
+  // Start a melee swing
+  function beginAttack(e) {
+    e.attacking = true;
+    e.atkTimer  = C.ATK_DUR;
+    e.atkHit    = false;
+    e.atkCd     = e.ac;
+  }
+
+  // Tick the swing and land damage on the impact frame
+  function tickMeleeAttack(e, player) {
+    if (e.atkTimer <= 0) return;
+    e.atkTimer--;
+    if (e.atkTimer === 0) e.attacking = false;
+
+    // Impact frame: past the midpoint of the swing
+    var impactFrame = Math.floor(C.ATK_DUR * 0.55);
+    if (!e.atkHit && e.atkTimer <= impactFrame) {
+      e.atkHit = true;
+      var hitbox = {
+        x: e.facing > 0 ? e.x + e.w : e.x - e.ar,
+        y: e.y, w: e.ar, h: e.h,
+      };
+      if (Physics.rectOverlap(hitbox.x, hitbox.y, hitbox.w, hitbox.h, player.x, player.y, player.w, player.h)) {
+        if (player.shielding && player.abilities.shield && player.facing !== e.facing) {
+          // Player blocked — no damage
+        } else {
+          Player.takeDamage(player, e.dmg);
+        }
+      }
+    }
   }
 
   // ── Pawn ──────────────────────────────────────────────────────────────────
@@ -31,22 +68,24 @@ var Enemies = (function() {
 
   function updatePawn(e, player, platforms) {
     if (e.dead || player.dead) return;
+
+    tickMeleeAttack(e, player);
+    if (e.atkCd > 0) e.atkCd--;
+
     var dx = (player.x + player.w/2) - (e.x + e.w/2);
     var dist = Math.abs(dx);
     e.facing = dx > 0 ? 1 : -1;
 
-    // Simple chase
-    if (dist > e.ar) {
-      e.vx = e.spd * e.facing;
-    } else {
-      e.vx *= 0.6;
-      // Attack
-      if (e.atkCd <= 0) {
-        e.atkCd = e.ac;
-        meleeAttack(e, player);
+    if (!e.attacking) {
+      if (dist > e.ar) {
+        e.vx = e.spd * e.facing;
+      } else {
+        e.vx *= 0.6;
+        if (e.atkCd <= 0) beginAttack(e);
       }
+    } else {
+      e.vx *= 0.5;
     }
-    if (e.atkCd > 0) e.atkCd--;
 
     applyPhysics(e, platforms);
   }
@@ -67,32 +106,40 @@ var Enemies = (function() {
     var dist = Math.abs(dx);
     e.facing = dx > 0 ? 1 : -1;
 
+    tickMeleeAttack(e, player);
+    if (e.atkCd > 0) e.atkCd--;
+
     if (e.mounted) {
-      // Mounted: charge, dash, attack
       if (e.dashTimer > 0) {
         e.vx = C.DASH_V * e.facing;
         e.dashTimer--;
-      } else if (dist > 160 && e.dashCd <= 0 && e.onGround) {
+      } else if (dist > 160 && e.dashCd <= 0 && e.onGround && !e.attacking) {
         e.dashTimer = C.DASH_DUR;
         e.dashCd = C.DASH_CD + 30;
         e.vx = C.DASH_V * e.facing;
-      } else if (dist > e.ar) {
-        e.vx = e.spd * e.facing;
+      } else if (!e.attacking) {
+        if (dist > e.ar) {
+          e.vx = e.spd * e.facing;
+        } else {
+          e.vx *= 0.6;
+          if (e.atkCd <= 0) beginAttack(e);
+        }
       } else {
-        e.vx *= 0.6;
-        if (e.atkCd <= 0) { e.atkCd = e.ac; meleeAttack(e, player); }
+        e.vx *= 0.5;
       }
       if (e.dashCd > 0) e.dashCd--;
     } else {
-      // Dismounted: slower, no dash
-      if (dist > e.ar) {
-        e.vx = e.spd * 0.65 * e.facing;
+      if (!e.attacking) {
+        if (dist > e.ar) {
+          e.vx = e.spd * 0.65 * e.facing;
+        } else {
+          e.vx *= 0.6;
+          if (e.atkCd <= 0) { beginAttack(e); e.atkCd = e.ac + 10; }
+        }
       } else {
-        e.vx *= 0.6;
-        if (e.atkCd <= 0) { e.atkCd = e.ac + 10; meleeAttack(e, player); }
+        e.vx *= 0.5;
       }
     }
-    if (e.atkCd > 0) e.atkCd--;
 
     applyPhysics(e, platforms);
   }
@@ -194,25 +241,28 @@ var Enemies = (function() {
 
   function updateTower(e, player, platforms) {
     if (e.dead || player.dead) return;
+
+    tickMeleeAttack(e, player);
+    if (e.atkCd > 0) e.atkCd--;
+
     var dx = (player.x + player.w/2) - (e.x + e.w/2);
     var dist = Math.abs(dx);
     e.facing = dx > 0 ? 1 : -1;
 
-    // Tower raises shield when player attacks (detected via player.atkTimer)
+    // Raise shield when player is swinging at the tower
     var playerFacingMe = player.facing === e.facing && dist < 150;
     e.shielding = playerFacingMe && player.atkTimer > 0;
 
-    if (!e.shielding) {
+    if (!e.shielding && !e.attacking) {
       if (dist > e.ar) {
         e.vx = e.spd * e.facing;
       } else {
         e.vx *= 0.6;
-        if (e.atkCd <= 0) { e.atkCd = e.ac; meleeAttack(e, player); }
+        if (e.atkCd <= 0) beginAttack(e);
       }
     } else {
-      e.vx *= 0.4; // barely moves while shielding
+      e.vx *= 0.4;
     }
-    if (e.atkCd > 0) e.atkCd--;
 
     applyPhysics(e, platforms);
   }
@@ -245,15 +295,16 @@ var Enemies = (function() {
     // Phase 0: melee rush
     // Phase 1: ranged spear
     // Phase 2: dash attack
+    tickMeleeAttack(e, player);
+    if (e.atkCd > 0) e.atkCd--;
+
     if (e.aiPhase === 0) {
-      // Melee
       e.shielding = false;
       if (e.dashTimer > 0) { e.vx = C.DASH_V*e.facing; e.dashTimer--; }
-      else if (dist > e.ar) { e.vx = e.spd * e.facing; }
-      else {
-        e.vx *= 0.6;
-        if (e.atkCd <= 0) { e.atkCd = e.ac; meleeAttack(e, player); }
-      }
+      else if (!e.attacking) {
+        if (dist > e.ar) { e.vx = e.spd * e.facing; }
+        else { e.vx *= 0.6; if (e.atkCd <= 0) beginAttack(e); }
+      } else { e.vx *= 0.5; }
     } else if (e.aiPhase === 1) {
       // Ranged — keep distance and throw spear
       if (dist < 150) e.vx = -e.spd * 0.7 * e.facing;
@@ -267,13 +318,11 @@ var Enemies = (function() {
         };
       }
     } else {
-      // Defensive — raise shield and wait for opening
       e.shielding = dist > 60;
-      if (!e.shielding && e.atkCd <= 0) { e.atkCd = e.ac; meleeAttack(e, player); }
+      if (!e.shielding && !e.attacking && e.atkCd <= 0) beginAttack(e);
       e.vx *= 0.5;
     }
 
-    if (e.atkCd > 0) e.atkCd--;
     if (e.dashCd > 0) e.dashCd--;
 
     if (e.queenSpear) {
@@ -328,18 +377,19 @@ var Enemies = (function() {
     }
     if (e.teleportCd > 0) e.teleportCd--;
 
-    // Aggressive version of queen logic
+    tickMeleeAttack(e, player);
+    if (e.atkCd > 0) e.atkCd--;
+
     if (e.aiPhase === 0 || e.aiPhase === 3) {
       e.shielding = false;
       if (e.dashTimer > 0) { e.vx = (C.DASH_V+2)*e.facing; e.dashTimer--; }
-      else if (dist > 200 && e.dashCd <= 0 && e.onGround) {
+      else if (dist > 200 && e.dashCd <= 0 && e.onGround && !e.attacking) {
         e.dashTimer = C.DASH_DUR; e.dashCd = C.DASH_CD;
       }
-      else if (dist > e.ar) { e.vx = e.spd * e.facing; }
-      else {
-        e.vx *= 0.5;
-        if (e.atkCd <= 0) { e.atkCd = e.ac; meleeAttack(e, player); }
-      }
+      else if (!e.attacking) {
+        if (dist > e.ar) { e.vx = e.spd * e.facing; }
+        else { e.vx *= 0.5; if (e.atkCd <= 0) beginAttack(e); }
+      } else { e.vx *= 0.5; }
     } else if (e.aiPhase === 1) {
       if (dist < 180) e.vx = -e.spd * e.facing;
       else e.vx *= 0.5;
@@ -357,7 +407,6 @@ var Enemies = (function() {
       if (e.shieldTimer++ > 60) { e.shielding = false; e.shieldTimer=0; e.aiPhase=(e.aiPhase+1)%4; }
     }
 
-    if (e.atkCd > 0) e.atkCd--;
     if (e.dashCd > 0) e.dashCd--;
     if (e.iframes > 0) e.iframes--;
 
@@ -372,15 +421,6 @@ var Enemies = (function() {
   }
 
   // ── Shared ─────────────────────────────────────────────────────────────────
-  function meleeAttack(e, player) {
-    var hitbox = {
-      x: e.facing > 0 ? e.x + e.w : e.x - e.ar,
-      y: e.y, w: e.ar, h: e.h,
-    };
-    if (Physics.rectOverlap(hitbox.x, hitbox.y, hitbox.w, hitbox.h, player.x, player.y, player.w, player.h)) {
-      Player.takeDamage(player, e.dmg);
-    }
-  }
 
   function applyPhysics(e, platforms) {
     if (e.iframes > 0) e.iframes--;
@@ -427,8 +467,14 @@ var Enemies = (function() {
     var cx = e.x + e.w/2;
     var cy = e.y + e.h;
 
-    if (e.type === 'pawn')   Draw.pawn(ctx, cx, cy, e.h, col);
-    else if (e.type === 'knight') Draw.knight(ctx, cx, cy, e.h, col, e.mounted);
+    if (e.type === 'pawn') {
+      Draw.pawn(ctx, cx, cy, e.h, col);
+      Draw.sword(ctx, cx, cy, e.h, col, e.facing, e.attacking);
+    }
+    else if (e.type === 'knight') {
+      Draw.knight(ctx, cx, cy, e.h, col, e.mounted);
+      Draw.sword(ctx, cx, cy - (e.mounted ? e.h*0.45 : 0), e.mounted ? e.h*0.55 : e.h, col, e.facing, e.attacking);
+    }
     else if (e.type === 'bishop') {
       Draw.bishop(ctx, cx, cy, e.h, col);
       if (e.spear) Draw.spear(ctx, e.spear.x, e.spear.y, C.SPEAR_W, C.SPEAR_H, e.spear.dir, col);
@@ -436,22 +482,22 @@ var Enemies = (function() {
     else if (e.type === 'tower') {
       Draw.tower(ctx, cx, cy, e.h, col);
       if (e.shielding) {
-        // Draw shield overlay
-        var sx = cx + e.facing * e.w*0.6;
-        ctx.fillStyle = col;
-        ctx.fillRect(sx - 4, cy - e.h*0.75, 8, e.h*0.55);
-        ctx.fillRect(sx - 14, cy - e.h*0.65, 28, e.h*0.35);
+        drawShieldOverlay(ctx, cx, cy, e, col);
+      } else {
+        Draw.sword(ctx, cx, cy, e.h, col, e.facing, e.attacking);
       }
     }
     else if (e.type === 'queen') {
       Draw.queen(ctx, cx, cy, e.h, col);
       if (e.queenSpear) Draw.spear(ctx, e.queenSpear.x, e.queenSpear.y, C.SPEAR_W, C.SPEAR_H, e.queenSpear.dir, col);
-      if (e.shielding) drawShieldOverlay(ctx, cx, cy, e, col);
+      else if (e.shielding) drawShieldOverlay(ctx, cx, cy, e, col);
+      else Draw.sword(ctx, cx, cy, e.h, col, e.facing, e.attacking);
     }
     else if (e.type === 'king') {
       Draw.king(ctx, cx, cy, e.h, col);
       if (e.kingSpear) Draw.spear(ctx, e.kingSpear.x, e.kingSpear.y, C.SPEAR_W+10, C.SPEAR_H+2, e.kingSpear.dir, col);
-      if (e.shielding) drawShieldOverlay(ctx, cx, cy, e, col);
+      else if (e.shielding) drawShieldOverlay(ctx, cx, cy, e, col);
+      else Draw.sword(ctx, cx, cy, e.h, col, e.facing, e.attacking);
     }
 
     // HP bar
@@ -461,9 +507,10 @@ var Enemies = (function() {
 
   function drawShieldOverlay(ctx, cx, cy, e, col) {
     var sx = cx + e.facing * e.w*0.55;
-    ctx.fillStyle = col;
-    ctx.fillRect(sx-4, cy-e.h*0.75, 8, e.h*0.55);
-    ctx.fillRect(sx-14, cy-e.h*0.65, 28, e.h*0.35);
+    var outline = col === '#000000' ? '#ffffff' : '#000000';
+    ctx.fillStyle = col; ctx.strokeStyle = outline; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.rect(sx-4, cy-e.h*0.75, 8, e.h*0.55); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.rect(sx-14, cy-e.h*0.65, 28, e.h*0.35); ctx.fill(); ctx.stroke();
   }
 
   function spawnWave(waveConfig, theme, canvasW, canvasH, platforms) {

@@ -255,6 +255,19 @@ var Draw = (function() {
     }
   }
 
+  // Draw a sword (shared by player and enemies)
+  function sword(ctx, cx, cy, h, color, facing, attacking) {
+    var swx = cx + facing * h * 0.3;
+    var swAngle = attacking ? -0.55 * facing : 0.25 * facing;
+    setupCtx(ctx, color);
+    ctx.save();
+    ctx.translate(swx, cy - h * 0.55);
+    ctx.rotate(swAngle);
+    ctx.beginPath(); ctx.rect(-h*0.04, -h*0.42, h*0.08, h*0.44); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.rect(-h*0.12, -h*0.02, h*0.24, h*0.05); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
   // HP bar
   function hpBar(ctx, x, y, w, h, pct, color, bgColor) {
     ctx.fillStyle = bgColor === 'transparent' ? 'rgba(0,0,0,0)' : (bgColor || 'rgba(128,128,128,0.3)');
@@ -266,5 +279,5 @@ var Draw = (function() {
     ctx.strokeRect(x, y, w, h);
   }
 
-  return { pawn, bishop, tower, knight, queen, king, bard, spear, player, hpBar };
+  return { pawn, bishop, tower, knight, queen, king, bard, spear, player, sword, hpBar };
 })();

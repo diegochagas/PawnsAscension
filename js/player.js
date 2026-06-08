@@ -139,15 +139,16 @@ var Player = (function() {
     p.onGround = res.onGround;
     if (Physics.fellOff(p)) { p.y = -p.h; p.vy = 0; } // respawn above — rare
 
-    // Mount state: mounted when dash unlocked and HP > 50%
+    // Mount state: lose horse below 50% HP, regain above 50%
     if (p.abilities.dash) {
       var wasMounted = p.mounted;
-      p.mounted = p.hp > p.maxHp * 0.5;
+      if (wasMounted && p.hp < p.maxHp * 0.5) {
+        p.mounted = false;
+      } else if (!wasMounted && p.hp >= p.maxHp * 0.5) {
+        p.mounted = true;
+      }
       if (wasMounted && !p.mounted) {
-        // Dismounted — adjust hitbox back
         p.w = C.PW; p.h = C.PH;
-      } else if (!wasMounted && p.mounted) {
-        p.w = C.PW; p.h = C.PH; // height handled in draw
       }
     }
 
@@ -248,7 +249,7 @@ var Player = (function() {
 
   function unlockAbility(p, ability) {
     p.abilities[ability] = true;
-    if (ability === 'dash') p.mounted = p.hp > p.maxHp * 0.5;
+    if (ability === 'dash') p.mounted = true; // always get horse on first unlock
     Input.unlockAbility(ability);
   }
 
