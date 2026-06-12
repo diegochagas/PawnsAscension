@@ -1,82 +1,99 @@
 # Pawn's Ascension
 
-Pawn's Ascension is a chess-themed, single-player platform combat game that
-runs entirely in the browser. You begin as a pawn, choose the black or white
-side, and fight through eight increasingly difficult waves to defeat the
-opposing king and ascend beyond the board.
+**Pawn's Ascension** (formerly _Pawn's Ascension_) is a chess-themed action game from
+the **Eternal Boards** universe, designed with Alexandre Bezerra. It runs
+entirely in the browser — no build step, no dependencies — and is drawn in a
+hand-scribbled, ink-on-paper style.
 
-The game uses a minimalist black-and-white presentation, with a unique
-platform layout and alternating light/dark theme for every wave. It supports
-both keyboard controls and the on-screen controller.
+It contains two modes:
 
-## How to Play
+- **Adventure** — a 2D Metroidvania campaign across the six zones of the
+  Chess Kingdom, with promotions, essence, bonfire save points and bosses.
+- **Survive** — the original 8-wave arena game, kept as a secondary mode.
 
-Defeat every enemy in a wave to advance. Enemies arrive one at a time and use
-different tactics based on their chess piece:
+The interface is available in **English and Portuguese** (toggle on the main
+menu).
 
-- **Pawns** chase and attack at close range.
-- **Knights** charge while mounted, then become slower when reduced below half
-  health.
-- **Bishops** keep their distance and throw returning spears.
-- **Towers** raise shields to block attacks from the front.
-- **The Queen** switches between melee, ranged, and defensive behavior.
-- **The King** charges, throws spears, shields, and swaps positions with living
-  towers.
+## Adventure mode
 
-Clearing a wave restores **30 HP**. New abilities are earned as you climb:
+You are a white pawn who awoke. Cross the Chess Kingdom and reach the Black
+King:
 
-| Wave cleared | Ability | Effect |
-| --- | --- | --- |
-| 3 | Dash | Mount a horse and dash with temporary invincibility. The mount is unavailable below 50% HP and returns after healing to at least 50% HP. |
-| 5 | Spear | Throw a ranged spear. Press the spear control again to retrieve it; it can also damage enemies while returning. |
-| 6 | Shield | Hold the shield toward incoming attacks to greatly reduce damage and block enemy spears from the front. |
+1. **Pawns' Training Field** · 2. **Ambush Woods** · 3. **Iron Cliffs** ·
+2. **Forge of the Black Pieces** · 5. **Abandoned Battlefield** ·
+3. **Castle of Shadows**
 
-After waves **2, 4, and 6**, the bard offers to record your progress. Saving
-stores the next wave, current HP, chosen side, and unlocked abilities in the
-browser's local storage. If you are defeated, you can restart from the most
-recent save point. Completing the final wave clears the save when you return to
-the main menu.
+Each zone ends in a boss, and the path forward is gated Metroidvania-style:
+a cracked wall only the **Tower's dash** can break, a ledge only the
+**Knight's L-jump** reaches, a shadow barrier only the **Bishop's magic**
+dispels, and a royal seal that yields only to the **Queen**.
+
+### Essence and promotions
+
+Defeated enemies drop **Black Essence**. Spend it at **chapel altars** to
+unlock promotions, and switch between unlocked forms at any altar:
+
+| Form         | Powers                                               |
+| ------------ | ---------------------------------------------------- |
+| Pawn         | Spear thrust (base form)                             |
+| Tower (30◆)  | Destructive dash (Shift), hard defense               |
+| Knight (40◆) | L-jump in mid-air (double jump), spinning attack     |
+| Bishop (40◆) | Magic bolt thrown ahead (Q), healing prayer (E)      |
+| Queen (150◆) | All of the above — requires Tower, Knight and Bishop |
+
+Corrupted white pieces (drawn light with dark scribbles) appear from the
+Forge onward and drop double essence; bosses drop five times as much.
+
+### Abilities (skill trees)
+
+Open **Abilities** from the pause menu. Two paths, per the original design:
+
+- **Inherited Memories** (white): First Stand (+25 max HP), Spear Advance
+  (throw/recall the spear), Still Healing (much faster standing-still
+  regeneration).
+- **Board Fragments** (dark): Destroyer Power (+50% damage), Heretic Dash
+  (faster dash recharge), Shadow Magic (stronger magic). The dark path is
+  remembered at the end…
+
+### Healing
+
+Stand still for about a second and the pawn slowly recovers health (a small
+cross pulses above him while it works) — in any form, in both modes. The
+Still Healing skill makes it kick in sooner and heal four times faster, and
+the Bishop/Queen prayer (E) heals instantly on a cooldown.
+
+### Bonfires
+
+Rest at a bonfire (↓) where the skeleton bard plays: you heal fully and your
+progress is saved (room, essence, forms, skills, opened gates). Enemies
+respawn. If you are captured, you return to your last bonfire. The HUD's
+flame icon shows how far the nearest bonfire is.
+
+## Survive mode
+
+The original game: choose black or white, fight eight waves, earn dash /
+spear / shield along the way, and save with the bard between waves. See the
+in-game prompts; it plays exactly as before.
 
 ## Controls
 
-### Keyboard
+| Action                                        | Keyboard             |
+| --------------------------------------------- | -------------------- |
+| Move                                          | `A`/`D` or `←`/`→`   |
+| Jump (and L-jump in air)                      | `W`, `↑`, or `Space` |
+| Attack / confirm                              | `Z` or `Enter`       |
+| Dash (Tower/Queen)                            | `Shift` or `X`       |
+| Power: spear throw or magic                   | `Q`                  |
+| Heal prayer (Bishop/Queen) / shield (Survive) | `E`                  |
+| Interact (bonfire/altar)                      | `S` or `↓`           |
+| Pause / back                                  | `P` or `Escape`      |
 
-| Action | Controls |
-| --- | --- |
-| Move left / right | `A` / `D` or `Left Arrow` / `Right Arrow` |
-| Jump | `W`, `Up Arrow`, or `Space` |
-| Sword attack / confirm menu choice | `Z` or `Enter` |
-| Dash, after unlocking | `Shift` or `X` |
-| Throw / retrieve spear, after unlocking | `Q` |
-| Hold shield, after unlocking | `E` or `Down Arrow` |
-| Pause / resume | `P` or `Escape` |
-| Save at the bard | `S` |
-
-On the side-selection menu, use left/right to choose black or white, then
-confirm with attack or jump.
-
-At the bard, select **Save** with left or jump, or select **Continue** with
-right or shield. Confirm the selected option with `Z` or `Enter`. You can also
-press `S` to save immediately or `Escape` to continue without saving.
-
-### On-Screen Controller
-
-The on-screen controller can be used with a mouse or touchscreen:
-
-- D-pad left/right moves the pawn, and D-pad up jumps.
-- **JUMP** also jumps.
-- The sword button attacks and confirms menu choices.
-- Dash, spear, and shield buttons become available when their abilities are
-  unlocked.
-- The center **II** button pauses and resumes the game.
+The on-screen controller mirrors these (D-pad, jump, attack, dash, power,
+heal/shield, pause) and works with mouse or touch.
 
 ## Running the Game
 
-No build step or dependencies are required. Open `index.html` in a modern web
-browser to play.
-
-For the most reliable browser storage and audio behavior, serve the folder with
-a simple local web server, for example:
+Open `index.html` in a modern browser, or serve the folder:
 
 ```sh
 python -m http.server 8000
@@ -86,12 +103,23 @@ Then open `http://localhost:8000`.
 
 ## Project Structure
 
-- `index.html` defines the canvas and on-screen controller.
-- `style.css` handles the responsive game and controller layout.
-- `js/game.js` contains the main loop, game states, saving, and progression.
-- `js/player.js`, `js/enemies.js`, and `js/physics.js` implement combat and
-  movement.
-- `js/wave.js`, `js/platforms.js`, and `js/config.js` define waves, arenas, and
-  balance values.
-- `js/draw.js`, `js/ui.js`, and `js/audio.js` provide rendering, interface, and
-  synthesized sound effects.
+- `index.html`, `style.css` — canvas + on-screen controller, paper theme.
+- `js/config.js` — balance values, forms, essence economy, themes.
+- `js/i18n.js` — EN/PT strings.
+- `js/game.js` — top-level state machine (menu → Adventure / Survive).
+- `js/adventure.js` — campaign controller: intro, HUD, altar/skills/map
+  screens, saving, endings.
+- `js/world.js`, `js/rooms.js`, `js/camera.js` — room engine, zone data,
+  scrolling camera.
+- `js/survive.js`, `js/wave.js`, `js/platforms.js` — the wave mode.
+- `js/player.js`, `js/enemies.js`, `js/physics.js` — combat and movement.
+- `js/draw.js`, `js/ui.js`, `js/audio.js` — ink-scribble rendering, Survive
+  UI, synthesized sound.
+
+## Design
+
+The game follows the design developed in the WhatsApp group "Game Designer
+Xadrez Metroidvania" (see `PLAN-V2.md`): title _Pawn's Ascension_, franchise
+_Eternal Boards_, the Realmkeeper narrator, plague-doctor bishop, skeletal
+bard at the bonfires, tally-mark health, and the dual skill tree
+(_Memórias Herdadas_ / _Fragmentos do Tabuleiro_).

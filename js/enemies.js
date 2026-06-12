@@ -217,7 +217,7 @@ var Enemies = (function() {
     }
     s.x += s.vx; s.dist += Math.abs(s.vx);
     if (checkSpearHitPlayer(s, player, e.dmg)) { s.stuck = true; e.spearReturning = true; return; }
-    if (s.x < 0 || s.x+s.w > C.W || s.dist > C.SPEAR_MAX) {
+    if (s.x < 0 || s.x+s.w > (C.ROOM_W || C.W) || s.dist > C.SPEAR_MAX) {
       s.stuck = true;
       s.dist = 0;
     }
@@ -461,6 +461,8 @@ var Enemies = (function() {
   function draw(ctx, e, theme) {
     if (e.dead) return;
     var col = e.color;
+    // Corrupted white pieces: light body with dark corruption scribbles
+    if (e.corrupted) col = theme.white || '#fbf8ee';
     // Flicker when invincible
     if (e.iframes > 0 && Math.floor(e.iframes/4) % 2 === 0) col = theme.bg;
 
@@ -500,9 +502,20 @@ var Enemies = (function() {
       else Draw.sword(ctx, cx, cy, e.h, col, e.facing, e.attacking);
     }
 
-    // HP bar
-    var barW = e.w + 12, barH = 5;
-    Draw.hpBar(ctx, e.x + e.w/2 - barW/2, e.y - 9, barW, barH, e.hp/e.maxHp, col, theme.bg);
+    // Adventure styling: white skull eyes on black pieces, corruption hatching on white ones
+    if (e.adv) {
+      if (e.corrupted) {
+        Draw.corruption(ctx, e.x, e.y, e.w, e.h, theme.ink || '#000', e.aiTimer + e.x);
+      } else {
+        Draw.skullFace(ctx, cx, cy, e.h, theme.white || theme.bg);
+      }
+    }
+
+    // HP bar (bosses get a big bar drawn by the HUD instead)
+    if (!e.boss) {
+      var barW = e.w + 12, barH = 5;
+      Draw.hpBar(ctx, e.x + e.w/2 - barW/2, e.y - 9, barW, barH, e.hp/e.maxHp, e.corrupted ? (theme.ink||col) : col, theme.bg);
+    }
   }
 
   function drawShieldOverlay(ctx, cx, cy, e, col) {
@@ -511,6 +524,30 @@ var Enemies = (function() {
     ctx.fillStyle = col; ctx.strokeStyle = outline; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.rect(sx-4, cy-e.h*0.75, 8, e.h*0.55); ctx.fill(); ctx.stroke();
     ctx.beginPath(); ctx.rect(sx-14, cy-e.h*0.65, 28, e.h*0.35); ctx.fill(); ctx.stroke();
+  }
+
+  // Create a single enemy at a position (Adventure rooms).
+  // opts: { boss:true, corrupted:true, hpMul, dmgMul, scale }
+  function createAt(type, x, y, color, opts) {
+    opts = opts || {};
+    var e;
+    if (type === 'pawn')        e = createPawn(x, y, color);
+    else if (type === 'knight') e = createKnight(x, y, color);
+    else if (type === 'bishop') e = createBishop(x, y, color);
+    else if (type === 'tower')  e = createTower(x, y, color);
+    else if (type === 'queen')  e = createQueen(x, y, color);
+    else if (type === 'king')   e = createKing(x, y, color);
+    if (!e) return null;
+    if (opts.scale) {
+      e.w = Math.round(e.w * opts.scale);
+      e.h = Math.round(e.h * opts.scale);
+    }
+    if (opts.hpMul)  { e.hp = Math.round(e.hp * opts.hpMul); e.maxHp = e.hp; }
+    if (opts.dmgMul) e.dmg = Math.round(e.dmg * opts.dmgMul);
+    e.boss = !!opts.boss;
+    e.corrupted = !!opts.corrupted;
+    e.adv = !!opts.adv; // adventure styling (skull eyes)
+    return e;
   }
 
   function spawnWave(waveConfig, theme, canvasW, canvasH, platforms) {
@@ -538,5 +575,5 @@ var Enemies = (function() {
     return enemies;
   }
 
-  return { update, draw, spawnWave, dismountKnight };
+  return { update, draw, spawnWave, createAt, dismountKnight };
 })();

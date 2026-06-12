@@ -56,6 +56,14 @@ var Audio = (function() {
       });
     },
     menuSelect:function() { beep(660, 0.07, 'square', 0.1); },
+    quill:   function() { sweep(1200, 700, 0.05, 'triangle', 0.06); },
+    magic:   function() { sweep(500, 900, 0.12, 'triangle', 0.1); },
+    heal:    function() { [392,523,659].forEach(function(f,i){ setTimeout(function(){ beep(f,0.18,'triangle',0.09); }, i*90); }); },
+    essence: function() { beep(880, 0.06, 'triangle', 0.07); },
+    doorBreak:function(){ sweep(160, 40, 0.25, 'sawtooth', 0.2); },
+    bonfireRest:function(){ [330,392,494,587].forEach(function(f,i){ setTimeout(function(){ beep(f,0.25,'triangle',0.09); }, i*140); }); },
+    altar:   function() { [262,330,392,523].forEach(function(f,i){ setTimeout(function(){ beep(f,0.2,'triangle',0.08); }, i*110); }); },
+    bossRoar:function() { sweep(120, 60, 0.4, 'sawtooth', 0.18); },
     save:    function() { [440,550,660].forEach(function(f,i){ setTimeout(function(){ beep(f,0.15,'square',0.1); },i*80); }); },
     gameOver:function() { sweep(400, 80, 0.5, 'sawtooth', 0.2); },
     victory: function() {

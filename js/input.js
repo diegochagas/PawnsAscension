@@ -5,6 +5,7 @@ var Input = (function() {
     attackJustPressed:false, jumpJustPressed:false, dashJustPressed:false,
     spearJustPressed:false, pauseJustPressed:false,
     leftJustPressed:false, rightJustPressed:false, shieldJustPressed:false,
+    downJustPressed:false, upJustPressed:false,
   };
   var prev = {};
 
@@ -19,7 +20,7 @@ var Input = (function() {
     ArrowLeft:'left',  KeyA:'left',
     ArrowRight:'right', KeyD:'right',
     ArrowUp:'jump',  KeyW:'jump', Space:'jump',
-    ArrowDown:'shield', KeyS:'down',
+    ArrowDown:'down', KeyS:'down',
     KeyZ:'attack', Enter:'attack',
     ShiftLeft:'dash', ShiftRight:'dash', KeyX:'dash',
     KeyQ:'spear',
@@ -69,6 +70,7 @@ var Input = (function() {
   bindBtn('btn-left',   'left');
   bindBtn('btn-right',  'right');
   bindBtn('btn-up',     'jump');
+  bindBtn('btn-down',   'down');
   bindBtn('btn-jump',   'jump');
   bindBtn('btn-attack', 'attack');
   bindBtn('btn-dash',   'dash');
@@ -96,12 +98,17 @@ var Input = (function() {
       state.leftJustPressed   = state.left   && !prev.left;
       state.rightJustPressed  = state.right  && !prev.right;
       state.shieldJustPressed = state.shield && !prev.shield;
+      state.downJustPressed   = state.down   && !prev.down;
+      state.upJustPressed     = state.jump   && !prev.jump;
       prev = copyState();
     },
     unlockAbility: function(ability) {
       if (ability === 'dash')   unlockBtn('btn-dash');
       if (ability === 'spear')  unlockBtn('btn-spear');
       if (ability === 'shield') unlockBtn('btn-shield');
+    },
+    lockAllAbilities: function() {
+      lockBtn('btn-dash'); lockBtn('btn-spear'); lockBtn('btn-shield');
     },
   };
 })();
