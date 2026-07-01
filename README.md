@@ -2,13 +2,17 @@
 
 **Pawn's Ascension** (formerly _Pawn's Ascension_) is a chess-themed action game from
 the **Eternal Boards** universe, designed with Alexandre Bezerra. It runs
-entirely in the browser — no build step, no dependencies — and is drawn in a
-hand-scribbled, ink-on-paper style.
+entirely in the browser — no build step, no dependencies — and is presented in
+a gothic, _Castlevania: Symphony of the Night_-inspired style: moonlit parallax
+backdrops, ornate gold UI, and every character drawn as a cartoon chess piece
+(the hero is a caped white pawn; the enemies are black pieces with glowing
+red eyes).
 
 It contains two modes:
 
-- **Adventure** — a 2D Metroidvania campaign across the six zones of the
-  Chess Kingdom, with promotions, essence, bonfire save points and bosses.
+- **Adventure** — a 2D action campaign across the six stages of the
+  Chess Kingdom, selected from a castle map, with promotions, essence,
+  bonfire save points and bosses.
 - **Survive** — the original 8-wave arena game, kept as a secondary mode.
 
 The interface is available in **English and Portuguese** (toggle on the main
@@ -23,10 +27,12 @@ King:
 2. **Forge of the Black Pieces** · 5. **Abandoned Battlefield** ·
 3. **Castle of Shadows**
 
-Each zone ends in a boss, and the path forward is gated Metroidvania-style:
-a cracked wall only the **Tower's dash** can break, a ledge only the
-**Knight's L-jump** reaches, a shadow barrier only the **Bishop's magic**
-dispels, and a royal seal that yields only to the **Queen**.
+Stages are chosen on the **castle map** — a chessboard path winding up to the
+Black King's castle. Each stage ends in a boss; locked stages show chains and
+a padlock until you clear the stage before them, and cleared stages are marked
+with a gold crown. You can replay cleared stages to farm essence. Some
+challenges still favor specific promotions (the Iron Cliffs boss hides behind
+a wall only the **Knight's L-jump** clears).
 
 ### Essence and promotions
 
@@ -103,18 +109,21 @@ Then open `http://localhost:8000`.
 
 ## Project Structure
 
-- `index.html`, `style.css` — canvas + on-screen controller, paper theme.
-- `js/config.js` — balance values, forms, essence economy, themes.
+- `index.html`, `style.css` — canvas + on-screen controller, gothic theme
+  (Cinzel display font).
+- `js/config.js` — balance values, forms, essence economy, gothic palette,
+  per-zone ambience (`C.ZONE_ART`).
 - `js/i18n.js` — EN/PT strings.
 - `js/game.js` — top-level state machine (menu → Adventure / Survive).
-- `js/adventure.js` — campaign controller: intro, HUD, altar/skills/map
-  screens, saving, endings.
-- `js/world.js`, `js/rooms.js`, `js/camera.js` — room engine, zone data,
-  scrolling camera.
+- `js/adventure.js` — campaign controller: intro, castle stage map, HUD,
+  altar/skills screens, saving, endings.
+- `js/world.js`, `js/rooms.js`, `js/camera.js` — room engine, stage data
+  (`Rooms.STAGES`), scrolling camera.
 - `js/survive.js`, `js/wave.js`, `js/platforms.js` — the wave mode.
 - `js/player.js`, `js/enemies.js`, `js/physics.js` — combat and movement.
-- `js/draw.js`, `js/ui.js`, `js/audio.js` — ink-scribble rendering, Survive
-  UI, synthesized sound.
+- `js/draw.js`, `js/ui.js`, `js/audio.js` — cartoon chess-piece sprites,
+  parallax zone paintings, ornate SOTN-style UI kit, Survive UI, synthesized
+  sound.
 
 ## Design
 

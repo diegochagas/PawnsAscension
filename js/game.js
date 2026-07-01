@@ -18,40 +18,110 @@
     return items;
   }
 
-  // ── Main menu (parchment style, per the concept mockups) ───────────────────
+  // ── Main menu (gothic night before the castle) ──────────────────────────────
   function drawMenu() {
-    var t = C.THEME.paper;
-    ctx.fillStyle = t.paper;
-    ctx.fillRect(0, 0, C.W, C.H);
-    Draw.inkRect(ctx, 14, 12, C.W - 28, C.H - 24, t.ink, 3, false);
+    var g = C.THEME.gothic;
 
-    // Title
-    ctx.font = 'bold 58px ' + C.FONT_HAND;
-    ctx.fillStyle = t.ink;
+    // Night sky
+    var sky = ctx.createLinearGradient(0, 0, 0, C.H);
+    sky.addColorStop(0, '#090718');
+    sky.addColorStop(0.65, '#1e1540');
+    sky.addColorStop(1, '#33245c');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, C.W, C.H);
+    Draw.stars(ctx, C.W, C.H, frame, 7);
+    Draw.moon(ctx, 42, 44, 18);
+
+    // Distant castle on its hill
+    ctx.fillStyle = '#171034';
+    ctx.beginPath();
+    ctx.moveTo(0, C.H - 90);
+    ctx.quadraticCurveTo(C.W * 0.3, C.H - 150, C.W * 0.55, C.H - 140);
+    ctx.quadraticCurveTo(C.W * 0.8, C.H - 132, C.W, C.H - 100);
+    ctx.lineTo(C.W, C.H); ctx.lineTo(0, C.H);
+    ctx.closePath(); ctx.fill();
+    Draw.castleSilhouette(ctx, C.W * 0.62, C.H - 138, 0.62, '#171034', frame);
+
+    // Foreground checkered floor strip
+    var gy = C.H - 46;
+    var floor = ctx.createLinearGradient(0, gy, 0, C.H);
+    floor.addColorStop(0, '#2c2545'); floor.addColorStop(1, '#141021');
+    ctx.fillStyle = floor;
+    ctx.fillRect(0, gy, C.W, 46);
+    for (var tx = 0; tx < C.W; tx += 28) {
+      ctx.fillStyle = (tx / 28) % 2 === 0 ? 'rgba(217,208,184,0.85)' : 'rgba(20,16,33,0.9)';
+      ctx.fillRect(tx, gy, 28, 8);
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.14)';
+    ctx.fillRect(0, gy, C.W, 1.5);
+
+    // Fog
+    var fog = ctx.createLinearGradient(0, C.H * 0.6, 0, C.H);
+    fog.addColorStop(0, 'rgba(0,0,0,0)');
+    fog.addColorStop(1, 'rgba(120,100,200,0.10)');
+    ctx.fillStyle = fog;
+    ctx.fillRect(0, C.H * 0.6, C.W, C.H * 0.4);
+
+    // Title with gold gradient
+    ctx.save();
+    ctx.font = 'bold 52px ' + C.FONT_GOTH;
     ctx.textAlign = 'center';
+    try { ctx.letterSpacing = '4px'; } catch(e) {}
+    ctx.shadowColor = 'rgba(0,0,0,0.9)';
+    ctx.shadowOffsetY = 4; ctx.shadowBlur = 8;
+    var gr = ctx.createLinearGradient(0, 50, 0, 108);
+    gr.addColorStop(0, g.goldHi); gr.addColorStop(0.55, g.gold); gr.addColorStop(1, g.goldLo);
+    ctx.fillStyle = gr;
     ctx.fillText(T('title'), C.W/2, 96);
-    Draw.inkLine(ctx, C.W/2 - 150, 112, C.W/2 + 150, 112, t.ink, 3, 7);
-    ctx.font = '15px ' + C.FONT_HAND;
-    ctx.fillText(T('franchise') + ' — ' + T('subtitle'), C.W/2, 138);
+    ctx.shadowColor = 'transparent';
+    ctx.strokeStyle = 'rgba(20,12,4,0.6)';
+    ctx.lineWidth = 1.4;
+    ctx.strokeText(T('title'), C.W/2, 96);
+    try { ctx.letterSpacing = '0px'; } catch(e) {}
+    ctx.restore();
+
+    // Divider + subtitle
+    var dg = ctx.createLinearGradient(C.W/2 - 190, 0, C.W/2 + 190, 0);
+    dg.addColorStop(0, 'rgba(201,164,76,0)'); dg.addColorStop(0.5, g.gold); dg.addColorStop(1, 'rgba(201,164,76,0)');
+    ctx.strokeStyle = dg; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(C.W/2 - 190, 112); ctx.lineTo(C.W/2 + 190, 112); ctx.stroke();
+    ctx.fillStyle = g.gold;
+    ctx.save(); ctx.translate(C.W/2, 112); ctx.rotate(Math.PI/4); ctx.fillRect(-3, -3, 6, 6); ctx.restore();
+    ctx.font = '13px ' + C.FONT_GOTH;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = g.textDim;
+    ctx.fillText(T('franchise') + ' — ' + T('subtitle'), C.W/2, 136);
 
     // Options
     var items = menuItems();
     items.forEach(function(k, i) {
       var sel = menuCursor === i;
-      ctx.font = (sel ? 'bold 24px ' : '19px ') + C.FONT_HAND;
-      ctx.fillStyle = sel ? t.ink : t.faded;
-      ctx.fillText((sel ? '➤ ' : '') + T(k), C.W/2, 196 + i * 44);
+      var y = 186 + i * 42;
+      if (sel) {
+        ctx.fillStyle = 'rgba(201,164,76,0.12)';
+        ctx.fillRect(C.W/2 - 150, y - 22, 300, 32);
+        ctx.fillStyle = g.gold;
+        ctx.save(); ctx.translate(C.W/2 - 162, y - 6); ctx.rotate(Math.PI/4); ctx.fillRect(-3.4, -3.4, 6.8, 6.8); ctx.restore();
+        ctx.save(); ctx.translate(C.W/2 + 162, y - 6); ctx.rotate(Math.PI/4); ctx.fillRect(-3.4, -3.4, 6.8, 6.8); ctx.restore();
+      }
+      ctx.font = (sel ? 'bold 20px ' : '16px ') + C.FONT_GOTH;
+      try { ctx.letterSpacing = '2px'; } catch(e) {}
+      ctx.fillStyle = sel ? g.goldHi : g.textDim;
+      ctx.fillText(T(k), C.W/2, y);
+      try { ctx.letterSpacing = '0px'; } catch(e) {}
     });
 
-    ctx.font = '13px ' + C.FONT_HAND;
-    ctx.fillStyle = t.faded;
-    ctx.fillText(T('menu_hint'), C.W/2, C.H - 28);
+    ctx.font = '12px ' + C.FONT_BODY;
+    ctx.fillStyle = g.textDim;
+    ctx.fillText(T('menu_hint'), C.W/2, C.H - 58);
     ctx.textAlign = 'left';
 
-    // Bonfire + bard in the corner (per the menu concept art)
-    Draw.bonfire(ctx, C.W - 110, C.H - 52, t.ink, t.paper, frame);
-    // Hero standing on the left
-    Draw.hero(ctx, 92, C.H - 52, 74, t.white, t.ink, 1, false, false, 'pawn');
+    // Bonfire + bard by the right, hero on the left
+    Draw.bonfire(ctx, C.W - 110, gy, null, null, frame);
+    Draw.hero(ctx, 92, gy, 74, null, null, 1, false, false, 'pawn');
+    // Torches flanking the title
+    Draw.torch(ctx, 60, 190, frame, 1.3);
+    Draw.torch(ctx, C.W - 60, 190, frame, 1.3);
   }
 
   function updateMenu(inp) {

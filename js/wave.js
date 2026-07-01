@@ -83,12 +83,24 @@ var WaveManager = (function() {
     var theme = wm.theme;
     if (!theme) return;
 
-    // Background
-    ctx.fillStyle = theme.bg;
+    // Background: soft vertical gradient in the wave's theme
+    var dark = theme.bg === '#141021' || theme.bg === '#000000';
+    var bg = ctx.createLinearGradient(0, 0, 0, C.H);
+    if (dark) { bg.addColorStop(0, '#0d0b1c'); bg.addColorStop(1, '#251c42'); }
+    else      { bg.addColorStop(0, '#f2ecd9'); bg.addColorStop(1, '#d4c9ac'); }
+    ctx.fillStyle = bg;
     ctx.fillRect(0, 0, C.W, C.H);
+    // Giant faded chess emblem watermark
+    ctx.save();
+    ctx.globalAlpha = 0.07;
+    ctx.font = 'bold 300px serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = dark ? '#f4edda' : '#221c2e';
+    ctx.fillText(dark ? '♞' : '♜', C.W/2, C.H*0.78);
+    ctx.restore();
 
-    // Platforms
-    Platforms.draw(ctx, wm.platforms, theme.plt);
+    // Platforms (gothic stone slabs with checkered tops)
+    wm.platforms.forEach(function(p) { Draw.platform(ctx, p, 5); });
 
     // Enemies
     wm.enemies.forEach(function(e) { Enemies.draw(ctx, e, theme); });

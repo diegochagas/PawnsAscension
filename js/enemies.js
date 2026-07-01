@@ -461,10 +461,10 @@ var Enemies = (function() {
   function draw(ctx, e, theme) {
     if (e.dead) return;
     var col = e.color;
-    // Corrupted white pieces: light body with dark corruption scribbles
-    if (e.corrupted) col = theme.white || '#fbf8ee';
+    // Corrupted white pieces: ivory body overrun by violet corruption
+    if (e.corrupted) col = '#f4edda';
     // Flicker when invincible
-    if (e.iframes > 0 && Math.floor(e.iframes/4) % 2 === 0) col = theme.bg;
+    if (e.iframes > 0 && Math.floor(e.iframes/4) % 2 === 0) return;
 
     var cx = e.x + e.w/2;
     var cy = e.y + e.h;
@@ -474,7 +474,7 @@ var Enemies = (function() {
       Draw.sword(ctx, cx, cy, e.h, col, e.facing, e.attacking);
     }
     else if (e.type === 'knight') {
-      Draw.knight(ctx, cx, cy, e.h, col, e.mounted);
+      Draw.knight(ctx, cx, cy, e.h, col, e.mounted, e.facing);
       Draw.sword(ctx, cx, cy - (e.mounted ? e.h*0.45 : 0), e.mounted ? e.h*0.55 : e.h, col, e.facing, e.attacking);
     }
     else if (e.type === 'bishop') {
@@ -502,28 +502,34 @@ var Enemies = (function() {
       else Draw.sword(ctx, cx, cy, e.h, col, e.facing, e.attacking);
     }
 
-    // Adventure styling: white skull eyes on black pieces, corruption hatching on white ones
-    if (e.adv) {
-      if (e.corrupted) {
-        Draw.corruption(ctx, e.x, e.y, e.w, e.h, theme.ink || '#000', e.aiTimer + e.x);
-      } else {
-        Draw.skullFace(ctx, cx, cy, e.h, theme.white || theme.bg);
-      }
+    // Corruption veins on possessed white pieces
+    if (e.corrupted) {
+      Draw.corruption(ctx, e.x, e.y, e.w, e.h, null, e.aiTimer + e.x);
     }
 
     // HP bar (bosses get a big bar drawn by the HUD instead)
-    if (!e.boss) {
-      var barW = e.w + 12, barH = 5;
-      Draw.hpBar(ctx, e.x + e.w/2 - barW/2, e.y - 9, barW, barH, e.hp/e.maxHp, e.corrupted ? (theme.ink||col) : col, theme.bg);
+    if (!e.boss && e.hp < e.maxHp) {
+      var barW = e.w + 12, barH = 4;
+      Draw.hpBar(ctx, e.x + e.w/2 - barW/2, e.y - 9, barW, barH, e.hp/e.maxHp);
     }
   }
 
   function drawShieldOverlay(ctx, cx, cy, e, col) {
-    var sx = cx + e.facing * e.w*0.55;
-    var outline = col === '#000000' ? '#ffffff' : '#000000';
-    ctx.fillStyle = col; ctx.strokeStyle = outline; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.rect(sx-4, cy-e.h*0.75, 8, e.h*0.55); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.rect(sx-14, cy-e.h*0.65, 28, e.h*0.35); ctx.fill(); ctx.stroke();
+    var sx = cx + e.facing * e.w * 0.62;
+    var h = e.h;
+    var steel = ctx.createLinearGradient(sx - 12, cy - h*0.75, sx + 12, cy - h*0.25);
+    steel.addColorStop(0, '#a8b0c4'); steel.addColorStop(1, '#5d647a');
+    ctx.fillStyle = steel;
+    ctx.strokeStyle = '#12101c'; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(sx - h*0.14, cy - h*0.78);
+    ctx.lineTo(sx + h*0.14, cy - h*0.78);
+    ctx.lineTo(sx + h*0.14, cy - h*0.42);
+    ctx.quadraticCurveTo(sx, cy - h*0.24, sx - h*0.14, cy - h*0.42);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    // Boss emblem
+    ctx.fillStyle = C.THEME.gothic.gold;
+    ctx.beginPath(); ctx.arc(sx, cy - h*0.55, h*0.045, 0, Math.PI*2); ctx.fill();
   }
 
   // Create a single enemy at a position (Adventure rooms).

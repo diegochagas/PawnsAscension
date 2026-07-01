@@ -103,14 +103,69 @@ var C = {
 
   // Colors per theme
   THEME: {
-    light: { bg:'#ffffff', fg:'#000000', plt:'#000000', pltStroke:'#222222', ui:'#000000', uiBg:'rgba(255,255,255,0.85)' },
-    dark:  { bg:'#000000', fg:'#ffffff', plt:'#ffffff', pltStroke:'#cccccc', ui:'#ffffff', uiBg:'rgba(0,0,0,0.85)' },
-    // Adventure: hand-scribbled ink on cream paper
-    paper: { bg:'#f1ecd9', fg:'#211f17', plt:'#211f17', pltStroke:'#211f17', ui:'#211f17',
-             uiBg:'rgba(241,236,217,0.88)', paper:'#f1ecd9', ink:'#211f17',
-             white:'#fbf8ee', faded:'rgba(33,31,23,0.45)' },
+    light: { bg:'#e9e2ce', fg:'#221c2e', plt:'#3a3450', pltStroke:'#221c2e', ui:'#221c2e', uiBg:'rgba(233,226,206,0.85)' },
+    dark:  { bg:'#141021', fg:'#efe8d4', plt:'#3a3450', pltStroke:'#0b0814', ui:'#efe8d4', uiBg:'rgba(20,16,33,0.85)' },
   },
 
-  // Hand-drawn font stack (Segoe Print ships with Windows; fallbacks for others)
-  FONT_HAND: '"Segoe Print","Bradley Hand","Comic Sans MS",cursive',
+  // Gothic display font (Cinzel loaded via index.html, serif fallbacks)
+  FONT_GOTH: '"Cinzel", "Trajan Pro", Georgia, "Times New Roman", serif',
+  FONT_BODY: 'Georgia, "Palatino Linotype", "Times New Roman", serif',
 };
+
+// Symphony-of-the-Night gothic palette (Adventure mode)
+C.THEME.gothic = {
+  // Night & panels
+  bg:      '#0d0b1c',
+  panel:   'rgba(12,9,26,0.93)',
+  panel2:  'rgba(28,22,52,0.92)',
+  gold:    '#c9a44c',
+  goldHi:  '#f2e2a6',
+  goldLo:  '#77571e',
+  text:    '#eee4c8',
+  textDim: 'rgba(238,228,200,0.5)',
+  blood:   '#c22738',
+  bloodLo: '#5e0f1c',
+  mana:    '#4f8fe8',
+  manaLo:  '#16336e',
+  arcane:  '#9a5cff',
+
+  // Chess piece palettes
+  ivory:   '#f4edda', ivoryHi:'#fffdf3', ivoryLo:'#c8ba93', ivoryDk:'#8d7f60',
+  onyx:    '#332b47', onyxHi: '#5b4c7e', onyxLo: '#1a1428', onyxDk:'#0c0916',
+  outline: '#0b0814',
+  outlineW:'#352a1c',
+  eye:     '#ff4545',
+  eyeGlow: 'rgba(255,60,60,0.85)',
+
+  // Legacy key aliases (older draw paths read these)
+  paper:'#0d0b1c', ink:'#eee4c8', white:'#f4edda', faded:'rgba(238,228,200,0.5)',
+  fg:'#eee4c8', plt:'#3a3450', pltStroke:'#1a1626',
+  ui:'#eee4c8', uiBg:'rgba(12,9,26,0.85)',
+};
+// Everything that referenced the old paper theme now gets the gothic one.
+C.THEME.paper = C.THEME.gothic;
+
+// Hand-drawn font alias kept for legacy call sites — now maps to the gothic body font.
+C.FONT_HAND = C.FONT_BODY;
+
+// Per-zone ambience for parallax backgrounds (Adventure)
+C.ZONE_ART = [
+  // 0 — Pawns' Training Field: moonlit meadow before the castle
+  { skyTop:'#12103a', skyBot:'#3d2f6e', horizon:'#57427f', far:'#221b4d', mid:'#1a1440',
+    fog:'rgba(150,140,220,0.10)', accent:'#9db8ff', particles:'fireflies', moon:true, stars:true },
+  // 1 — Ambush Woods: strangled dark forest
+  { skyTop:'#081410', skyBot:'#14352a', horizon:'#1d4a37', far:'#0e2419', mid:'#0a1c12',
+    fog:'rgba(110,190,140,0.13)', accent:'#7fe8ac', particles:'leaves', moon:true, stars:true },
+  // 2 — Iron Cliffs: cold windswept crags
+  { skyTop:'#0d1526', skyBot:'#31435f', horizon:'#4a5f80', far:'#1c2a44', mid:'#131e33',
+    fog:'rgba(170,195,230,0.12)', accent:'#a8ccff', particles:'wind', moon:true, stars:true },
+  // 3 — Forge of the Black Pieces: ember-lit industry
+  { skyTop:'#1c0a0a', skyBot:'#572010', horizon:'#7e3512', far:'#301010', mid:'#230b0b',
+    fog:'rgba(255,120,40,0.10)', accent:'#ffab4a', particles:'embers', moon:false, stars:false },
+  // 4 — Abandoned Battlefield: bruised dusk over ruins
+  { skyTop:'#170f22', skyBot:'#4a2440', horizon:'#6e3350', far:'#2a1834', mid:'#1e1126',
+    fog:'rgba(200,120,160,0.10)', accent:'#e88ab0', particles:'ash', moon:true, stars:true },
+  // 5 — Castle of Shadows: the great gothic halls
+  { skyTop:'#0a0818', skyBot:'#241a44', horizon:'#332457', far:'#181037', mid:'#120b28',
+    fog:'rgba(140,110,255,0.08)', accent:'#b09aff', particles:'dust', moon:false, stars:false },
+];

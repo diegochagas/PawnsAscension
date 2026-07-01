@@ -41,13 +41,13 @@ var World = (function() {
     (room.enemies || []).forEach(function(spec) {
       var opts = {}; for (var k in spec.opts) opts[k] = spec.opts[k];
       opts.adv = true;
-      var e = Enemies.createAt(spec.type, spec.x, room.h - 240, C.THEME.paper.ink, opts);
+      var e = Enemies.createAt(spec.type, spec.x, room.h - 240, '#000000', opts);
       if (e) w.enemies.push(e);
     });
     if (room.boss && !w.bossesDead[roomId]) {
       var bopts = {}; for (var k2 in room.boss.opts) bopts[k2] = room.boss.opts[k2];
       bopts.adv = true;
-      var b = Enemies.createAt(room.boss.type, room.boss.x, room.h - 300, C.THEME.paper.ink, bopts);
+      var b = Enemies.createAt(room.boss.type, room.boss.x, room.h - 300, '#000000', bopts);
       if (b) { w.enemies.push(b); w.bossAlert = 110; Audio.bossRoar(); }
     }
 
@@ -56,7 +56,7 @@ var World = (function() {
     if (enterFrom === 'left')       player.x = 30;
     else if (enterFrom === 'right') player.x = room.w - 30 - player.w;
     else if (typeof enterFrom === 'number') player.x = enterFrom;
-    else player.x = room.bonfire ? room.bonfire - 40 : 60;
+    else player.x = room.bonfire ? room.bonfire + 48 : 60;
     player.y = room.h - 40 - player.h - 2;
 
     // Zone banner on zone change
@@ -82,10 +82,10 @@ var World = (function() {
   }
 
   // ── Update ─────────────────────────────────────────────────────────────────
-  // Returns { finalBossDied: bool }
+  // Returns { finalBossDied: bool, stageCleared: zoneIdx|null }
   function update(w, player) {
     w.frame++;
-    var events = { finalBossDied: false };
+    var events = { finalBossDied: false, stageCleared: null };
     var room = w.room;
     if (!room) return events;
 
@@ -106,19 +106,14 @@ var World = (function() {
         if (e.boss) {
           w.bossesDead[w.roomId] = true;
           if (room.boss && room.boss.final) events.finalBossDied = true;
+          else events.stageCleared = room.zone;
         }
       }
     });
     w.essenceFx.forEach(function(f) { f.t--; f.y -= 0.6; });
     w.essenceFx = w.essenceFx.filter(function(f) { return f.t > 0; });
 
-    // Boss doors open when the room's boss is gone
-    if (w.bossesDead[w.roomId]) {
-      w.doors.filter(function(d) { return d.req === 'boss'; })
-        .forEach(function(d) { breakDoor(w, d); });
-    }
-
-    // Door interactions
+    // Door interactions (in-stage gates)
     var pr = { x: player.x - 6, y: player.y, w: player.w + 12, h: player.h };
     w.doors.slice().forEach(function(d) {
       var touching = Physics.rectOverlap(pr.x, pr.y, pr.w, pr.h, d.x, d.y, d.w, d.h);
@@ -137,17 +132,10 @@ var World = (function() {
           }
         }
         if (touching) showHint(w, 'door_shade');
-      } else if (d.req === 'queen') {
-        if (touching) {
-          if (player.forms.queen) { breakDoor(w, d); return; }
-          showHint(w, 'door_queen');
-        }
-      } else if (d.req === 'boss') {
-        if (touching) showHint(w, 'door_boss');
       }
     });
 
-    // Room transitions at the edges
+    // Room transitions at the edges (within the stage)
     if (player.x <= 0 && room.exits.left) {
       loadRoom(w, player, room.exits.left, 'right');
       return events;
@@ -206,114 +194,182 @@ var World = (function() {
   }
 
   // ── Drawing ────────────────────────────────────────────────────────────────
+
+  // Parallax painting behind the world (drawn in screen space, before the
+  // camera translate).
+  function drawBg(ctx, w, cam) {
+    if (!w.room) return;
+    Draw.background(ctx, w.room.zone, cam.x, cam.y, w.frame, w.room.w, w.room.h);
+  }
+
+  // World-space scenery per zone, placed along the room
   function drawProps(ctx, w) {
-    var room = w.room, t = C.THEME.paper;
+    var room = w.room;
     var gy = room.h - 40;
     var zone = room.zone;
-    // Per-zone scribbled background props, spaced along the room
-    for (var x = 150; x < room.w - 100; x += 320) {
-      var s = x * 7 + zone * 31;
-      ctx.globalAlpha = 0.55;
-      if (zone === 1) { // woods: scribble tree
-        Draw.inkLine(ctx, x, gy, x, gy - 70, t.ink, 2.5, s);
-        for (var b = 0; b < 3; b++)
-          Draw.inkLine(ctx, x, gy - 40 - b*12, x + (b%2?28:-26), gy - 58 - b*12, t.ink, 1.6, s+b);
-      } else if (zone === 2) { // cliffs: jagged rock
-        Draw.inkLine(ctx, x - 26, gy, x, gy - 44, t.ink, 2, s);
-        Draw.inkLine(ctx, x, gy - 44, x + 22, gy, t.ink, 2, s+1);
-      } else if (zone === 3) { // forge: chimney with smoke
-        Draw.inkRect(ctx, x - 12, gy - 60, 24, 60, t.ink, s, true);
-        ctx.globalAlpha = 0.35;
-        for (var sm = 0; sm < 3; sm++) {
-          var oy = (w.frame * 0.4 + sm * 22) % 66;
-          ctx.beginPath();
-          ctx.arc(x + Math.sin((w.frame + sm*40) * 0.03) * 6, gy - 70 - oy, 5 + sm, 0, Math.PI*2);
-          ctx.strokeStyle = t.ink; ctx.lineWidth = 1.2; ctx.stroke();
+
+    for (var x = 150; x < room.w - 100; x += 300) {
+      var s = (x * 7 + zone * 31) | 0;
+      var v = Draw.rnd(s);
+      if (zone === 0) {
+        // Training field: pawn statues and practice banners
+        if (v > 0.5) Draw.statue(ctx, 'pawn', x, gy, 64 + Draw.jit(s, 10));
+        else {
+          // Fence
+          ctx.strokeStyle = '#241a30'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(x - 26, gy); ctx.lineTo(x - 26, gy - 24); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x + 26, gy); ctx.lineTo(x + 26, gy - 24); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x - 32, gy - 17); ctx.lineTo(x + 32, gy - 17); ctx.stroke();
         }
-      } else if (zone === 4) { // battlefield: planted broken spear
-        Draw.inkLine(ctx, x, gy, x + 8, gy - 52, t.ink, 2, s);
-        Draw.inkLine(ctx, x - 9, gy - 34, x + 19, gy - 42, t.ink, 1.6, s+2);
-      } else if (zone === 5) { // castle: hanging banner
-        Draw.inkLine(ctx, x - 14, gy - 150, x + 14, gy - 150, t.ink, 2, s);
-        ctx.fillStyle = t.ink; ctx.globalAlpha = 0.5;
+      } else if (zone === 1) {
+        // Woods: near trees + glowing mushrooms
+        Draw.deadTree(ctx, x, gy, 150 + Draw.jit(s, 40), s);
+        if (v > 0.4) {
+          ctx.save();
+          ctx.shadowColor = 'rgba(120,255,170,0.8)'; ctx.shadowBlur = 6;
+          ctx.fillStyle = '#63d68e';
+          ctx.beginPath(); ctx.arc(x + 40, gy - 4, 5, Math.PI, 0); ctx.fill();
+          ctx.restore();
+          ctx.fillStyle = '#d9d0b8';
+          ctx.fillRect(x + 38, gy - 4, 4, 5);
+        }
+      } else if (zone === 2) {
+        // Cliffs: rock spurs and hanging chains
+        ctx.fillStyle = '#2a2036';
         ctx.beginPath();
-        ctx.moveTo(x - 10, gy - 150); ctx.lineTo(x + 10, gy - 150);
-        ctx.lineTo(x + 10, gy - 105); ctx.lineTo(x, gy - 92); ctx.lineTo(x - 10, gy - 105);
+        ctx.moveTo(x - 30, gy);
+        ctx.lineTo(x - 8, gy - 46 - Draw.jit(s, 16));
+        ctx.lineTo(x + 10, gy - 30);
+        ctx.lineTo(x + 26, gy);
         ctx.closePath(); ctx.fill();
-      } else { // training field: fence post
-        Draw.inkLine(ctx, x, gy, x, gy - 26, t.ink, 2, s);
-        Draw.inkLine(ctx, x - 18, gy - 18, x + 18, gy - 18, t.ink, 1.6, s+1);
+        if (v > 0.5) Draw.chain(ctx, x + 60, gy - 190, 90, w.frame, s);
+      } else if (zone === 3) {
+        // Forge: anvils, chimneys, gears
+        if (v > 0.55) {
+          Draw.gear(ctx, x, gy - 120, 26, w.frame, v > 0.75 ? 1 : -1);
+        } else {
+          // Anvil
+          ctx.fillStyle = '#2c2130'; ctx.strokeStyle = '#12080e'; ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(x - 18, gy - 18); ctx.lineTo(x + 20, gy - 18);
+          ctx.lineTo(x + 12, gy - 10); ctx.lineTo(x + 8, gy - 4);
+          ctx.lineTo(x - 8, gy - 4); ctx.lineTo(x - 12, gy - 10);
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+          // Hot glow line
+          ctx.fillStyle = 'rgba(255,140,50,0.85)';
+          ctx.fillRect(x - 14, gy - 18, 30, 2);
+        }
+      } else if (zone === 4) {
+        // Battlefield: broken statues, graves, planted swords
+        if (v > 0.66)      Draw.statue(ctx, v > 0.8 ? 'knight' : 'rook', x, gy, 76, true);
+        else if (v > 0.33) Draw.gravestone(ctx, x, gy, 30, s);
+        else {
+          // Planted sword
+          ctx.save();
+          ctx.translate(x, gy);
+          ctx.rotate(Draw.jit(s, 0.2));
+          ctx.fillStyle = '#8a93a8'; ctx.strokeStyle = '#12101c'; ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.moveTo(-2.6, -8); ctx.lineTo(-2.6, -42); ctx.lineTo(0, -48); ctx.lineTo(2.6, -42); ctx.lineTo(2.6, -8);
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = C.THEME.gothic.gold;
+          ctx.fillRect(-8, -10, 16, 4);
+          ctx.restore();
+        }
+      } else {
+        // Castle interior: torches, banners, candelabra
+        if (v > 0.6)      Draw.torch(ctx, x, gy - 120, w.frame, 1.1);
+        else if (v > 0.3) Draw.bannerFlag(ctx, x, gy - 210, 34, 66, ['♜','♞','♝','♛'][s % 4], w.frame);
+        else {
+          // Candelabrum
+          ctx.strokeStyle = '#241c30'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy - 44); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x - 14, gy - 44); ctx.lineTo(x + 14, gy - 44); ctx.stroke();
+          [-14, 0, 14].forEach(function(dx, i) {
+            var f2 = w.frame * 0.2 + i;
+            ctx.fillStyle = '#e8e2d0';
+            ctx.fillRect(x + dx - 1.6, gy - 54, 3.2, 10);
+            ctx.fillStyle = '#ffb84a';
+            ctx.beginPath();
+            ctx.ellipse(x + dx + Math.sin(f2) * 1, gy - 57, 1.8, 3.6, 0, 0, Math.PI*2);
+            ctx.fill();
+          });
+        }
       }
-      ctx.globalAlpha = 1;
     }
-    // Castle zone: battlement line across the top
-    if (zone === 5) {
-      ctx.globalAlpha = 0.5;
-      for (var bx = 0; bx < room.w; bx += 56)
-        Draw.inkRect(ctx, bx, 22, 30, 18, t.ink, bx, false);
-      ctx.globalAlpha = 1;
+
+    // Torches flanking bonfires and altars in every zone
+    if (room.bonfire) Draw.torch(ctx, room.bonfire - 90, room.h - 40 - 60, w.frame, 0.9);
+    if (room.altar) {
+      Draw.torch(ctx, room.altar - 70, room.h - 40 - 60, w.frame, 0.9);
+      Draw.torch(ctx, room.altar + 70, room.h - 40 - 60, w.frame, 0.9);
     }
   }
 
   function drawDoors(ctx, w) {
-    var t = C.THEME.paper;
+    var g = C.THEME.gothic;
     w.doors.forEach(function(d) {
       if (d.req === 'shade') {
-        // Shadow barrier: solid dark, wavering
-        ctx.fillStyle = t.ink;
-        ctx.globalAlpha = 0.8 + Math.sin(w.frame * 0.1) * 0.12;
+        // Shadow barrier: wavering violet veil
+        var a = 0.66 + Math.sin(w.frame * 0.1) * 0.12;
+        ctx.save();
+        ctx.shadowColor = 'rgba(150,70,255,0.8)';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = 'rgba(60,20,110,' + a + ')';
         ctx.fillRect(d.x, d.y, d.w, d.h);
-        ctx.globalAlpha = 1;
-      } else if (d.req === 'crack') {
-        Draw.inkRect(ctx, d.x, d.y, d.w, d.h, t.ink, d.x, true);
-        // Crack zigzag
-        Draw.inkLine(ctx, d.x + d.w/2 - 5, d.y + 8, d.x + d.w/2 + 4, d.y + d.h*0.4, t.ink, 1.6, d.x+1);
-        Draw.inkLine(ctx, d.x + d.w/2 + 4, d.y + d.h*0.4, d.x + d.w/2 - 6, d.y + d.h*0.8, t.ink, 1.6, d.x+2);
-      } else if (d.req === 'queen') {
-        Draw.inkRect(ctx, d.x, d.y, d.w, d.h, t.ink, d.x, true);
-        ctx.font = '16px ' + C.FONT_HAND;
-        ctx.fillStyle = t.paper; ctx.textAlign = 'center';
-        ctx.fillText('♛', d.x + d.w/2, d.y + d.h/2);
-        ctx.textAlign = 'left';
-      } else { // boss seal
-        Draw.inkRect(ctx, d.x, d.y, d.w, d.h, t.ink, d.x, true);
+        ctx.restore();
+      } else {
+        // Cracked / sealed stone
+        var st = ctx.createLinearGradient(d.x, d.y, d.x + d.w, d.y);
+        st.addColorStop(0, '#4a4363'); st.addColorStop(1, '#2a2540');
+        ctx.fillStyle = st;
+        ctx.fillRect(d.x, d.y, d.w, d.h);
+        ctx.strokeStyle = '#0e0b1a'; ctx.lineWidth = 1.6;
+        ctx.strokeRect(d.x + 0.5, d.y + 0.5, d.w - 1, d.h - 1);
+        if (d.req === 'crack') {
+          ctx.strokeStyle = '#12101c'; ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(d.x + d.w/2 - 5, d.y + 8);
+          ctx.lineTo(d.x + d.w/2 + 4, d.y + d.h*0.4);
+          ctx.lineTo(d.x + d.w/2 - 6, d.y + d.h*0.8);
+          ctx.stroke();
+        }
       }
     });
   }
 
   function draw(ctx, w, player) {
-    var room = w.room, t = C.THEME.paper;
+    var room = w.room;
     if (!room) return;
 
     drawProps(ctx, w);
 
     // Platforms (skip doors — drawn separately)
     room.plats.forEach(function(p) {
-      ctx.fillStyle = t.paper;
-      ctx.fillRect(p.x, p.y, p.w, p.h);
-      Draw.inkRect(ctx, p.x, p.y, p.w, p.h, t.ink, p.x + p.y, true);
+      Draw.platform(ctx, p, room.zone);
     });
     drawDoors(ctx, w);
 
     // Bonfire & altar
     var gy = room.h - 40;
-    if (room.bonfire) Draw.bonfire(ctx, room.bonfire, gy, t.ink, t.paper, w.frame);
-    if (room.altar)   Draw.altar(ctx, room.altar, gy, t.ink, t.paper);
+    if (room.bonfire) Draw.bonfire(ctx, room.bonfire, gy, null, null, w.frame);
+    if (room.altar)   Draw.altar(ctx, room.altar, gy);
 
     // Enemies & player
-    w.enemies.forEach(function(e) { Enemies.draw(ctx, e, t); });
-    Player.draw(ctx, player, t);
+    var theme = C.THEME.gothic;
+    w.enemies.forEach(function(e) { Enemies.draw(ctx, e, theme); });
+    Player.draw(ctx, player, theme);
 
     // Essence float text
-    ctx.font = '13px ' + C.FONT_HAND;
+    ctx.font = 'bold 13px ' + C.FONT_GOTH;
     w.essenceFx.forEach(function(f) {
       ctx.globalAlpha = Math.min(1, f.t / 30);
-      Draw.essenceShard(ctx, f.x - 14, f.y - 4, 5, t.ink);
-      ctx.fillStyle = t.ink;
+      Draw.essenceShard(ctx, f.x - 14, f.y - 4, 5);
+      ctx.fillStyle = theme.goldHi;
       ctx.fillText('+' + f.n, f.x - 6, f.y);
       ctx.globalAlpha = 1;
     });
   }
 
-  return { create, loadRoom, update, draw, nearBonfire, nearAltar, bonfireDistance };
+  return { create, loadRoom, update, draw, drawBg, nearBonfire, nearAltar, bonfireDistance };
 })();
