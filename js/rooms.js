@@ -168,15 +168,15 @@ var Rooms = (function() {
   var ZONE_KEYS = ['zone1','zone2','zone3','zone4','zone5','zone6'];
   var START = 'z1r1';
 
-  // Castle-map stage nodes: start room, boss room, node position on the map,
-  // and the emblem drawn on the stage tile.
+  // Castle-map stage nodes: start room, boss room, chamber position inside
+  // the castle cross-section, and the emblem drawn in the chamber.
   var STAGES = [
-    { zone:0, start:'z1r1', boss:'z1b', x:118, y:334, icon:'pawn'   },
-    { zone:1, start:'z2r1', boss:'z2b', x:258, y:322, icon:'knight' },
-    { zone:2, start:'z3r1', boss:'z3b', x:398, y:280, icon:'bishop' },
-    { zone:3, start:'z4r1', boss:'z4b', x:540, y:230, icon:'rook'   },
-    { zone:4, start:'z5r1', boss:'z5b', x:462, y:152, icon:'queen'  },
-    { zone:5, start:'z6r1', boss:'z6b', x:338, y:112, icon:'king'   },
+    { zone:0, start:'z1r1', boss:'z1b', x:150, y:350, icon:'pawn'   },
+    { zone:1, start:'z2r1', boss:'z2b', x:330, y:350, icon:'knight' },
+    { zone:2, start:'z3r1', boss:'z3b', x:555, y:315, icon:'bishop' },
+    { zone:3, start:'z4r1', boss:'z4b', x:610, y:225, icon:'rook'   },
+    { zone:4, start:'z5r1', boss:'z5b', x:420, y:210, icon:'queen'  },
+    { zone:5, start:'z6r1', boss:'z6b', x:400, y:155, icon:'king'   },
   ];
 
   function get(id) { return R[id]; }

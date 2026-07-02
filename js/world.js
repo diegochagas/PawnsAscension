@@ -36,18 +36,21 @@ var World = (function() {
       });
     rebuildPlatforms(w);
 
-    // Enemies respawn on entry; bosses stay dead
+    // Enemies respawn on entry; bosses stay dead. Enemies are the opposite
+    // side of the player; corrupted pieces are the player's own side.
+    var foe = player.enemyColor || '#14110c';
+    var own = player.color || '#f7f3e4';
     w.enemies = [];
     (room.enemies || []).forEach(function(spec) {
       var opts = {}; for (var k in spec.opts) opts[k] = spec.opts[k];
       opts.adv = true;
-      var e = Enemies.createAt(spec.type, spec.x, room.h - 240, '#000000', opts);
+      var e = Enemies.createAt(spec.type, spec.x, room.h - 240, opts.corrupted ? own : foe, opts);
       if (e) w.enemies.push(e);
     });
     if (room.boss && !w.bossesDead[roomId]) {
       var bopts = {}; for (var k2 in room.boss.opts) bopts[k2] = room.boss.opts[k2];
       bopts.adv = true;
-      var b = Enemies.createAt(room.boss.type, room.boss.x, room.h - 300, '#000000', bopts);
+      var b = Enemies.createAt(room.boss.type, room.boss.x, room.h - 300, bopts.corrupted ? own : foe, bopts);
       if (b) { w.enemies.push(b); w.bossAlert = 110; Audio.bossRoar(); }
     }
 
@@ -222,26 +225,25 @@ var World = (function() {
           ctx.beginPath(); ctx.moveTo(x - 32, gy - 17); ctx.lineTo(x + 32, gy - 17); ctx.stroke();
         }
       } else if (zone === 1) {
-        // Woods: near trees + glowing mushrooms
+        // Woods: near trees + pale mushrooms
         Draw.deadTree(ctx, x, gy, 150 + Draw.jit(s, 40), s);
         if (v > 0.4) {
-          ctx.save();
-          ctx.shadowColor = 'rgba(120,255,170,0.8)'; ctx.shadowBlur = 6;
-          ctx.fillStyle = '#63d68e';
+          ctx.fillStyle = '#1a1712';
           ctx.beginPath(); ctx.arc(x + 40, gy - 4, 5, Math.PI, 0); ctx.fill();
-          ctx.restore();
-          ctx.fillStyle = '#d9d0b8';
-          ctx.fillRect(x + 38, gy - 4, 4, 5);
+          ctx.fillStyle = '#f2edda';
+          ctx.strokeStyle = '#1a1712'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.rect(x + 38, gy - 4, 4, 5); ctx.fill(); ctx.stroke();
         }
       } else if (zone === 2) {
         // Cliffs: rock spurs and hanging chains
-        ctx.fillStyle = '#2a2036';
+        ctx.fillStyle = '#57514a';
+        ctx.strokeStyle = '#1a1712'; ctx.lineWidth = 1.4;
         ctx.beginPath();
         ctx.moveTo(x - 30, gy);
         ctx.lineTo(x - 8, gy - 46 - Draw.jit(s, 16));
         ctx.lineTo(x + 10, gy - 30);
         ctx.lineTo(x + 26, gy);
-        ctx.closePath(); ctx.fill();
+        ctx.closePath(); ctx.fill(); ctx.stroke();
         if (v > 0.5) Draw.chain(ctx, x + 60, gy - 190, 90, w.frame, s);
       } else if (zone === 3) {
         // Forge: anvils, chimneys, gears
@@ -249,14 +251,14 @@ var World = (function() {
           Draw.gear(ctx, x, gy - 120, 26, w.frame, v > 0.75 ? 1 : -1);
         } else {
           // Anvil
-          ctx.fillStyle = '#2c2130'; ctx.strokeStyle = '#12080e'; ctx.lineWidth = 1.6;
+          ctx.fillStyle = '#3a352c'; ctx.strokeStyle = '#0c0a07'; ctx.lineWidth = 1.6;
           ctx.beginPath();
           ctx.moveTo(x - 18, gy - 18); ctx.lineTo(x + 20, gy - 18);
           ctx.lineTo(x + 12, gy - 10); ctx.lineTo(x + 8, gy - 4);
           ctx.lineTo(x - 8, gy - 4); ctx.lineTo(x - 12, gy - 10);
           ctx.closePath(); ctx.fill(); ctx.stroke();
-          // Hot glow line
-          ctx.fillStyle = 'rgba(255,140,50,0.85)';
+          // White-hot edge
+          ctx.fillStyle = 'rgba(253,251,241,0.85)';
           ctx.fillRect(x - 14, gy - 18, 30, 2);
         }
       } else if (zone === 4) {
@@ -268,11 +270,11 @@ var World = (function() {
           ctx.save();
           ctx.translate(x, gy);
           ctx.rotate(Draw.jit(s, 0.2));
-          ctx.fillStyle = '#8a93a8'; ctx.strokeStyle = '#12101c'; ctx.lineWidth = 1.4;
+          ctx.fillStyle = '#a9a28c'; ctx.strokeStyle = '#1a1712'; ctx.lineWidth = 1.4;
           ctx.beginPath();
           ctx.moveTo(-2.6, -8); ctx.lineTo(-2.6, -42); ctx.lineTo(0, -48); ctx.lineTo(2.6, -42); ctx.lineTo(2.6, -8);
           ctx.closePath(); ctx.fill(); ctx.stroke();
-          ctx.fillStyle = C.THEME.gothic.gold;
+          ctx.fillStyle = '#1a1712';
           ctx.fillRect(-8, -10, 16, 4);
           ctx.restore();
         }
@@ -282,17 +284,14 @@ var World = (function() {
         else if (v > 0.3) Draw.bannerFlag(ctx, x, gy - 210, 34, 66, ['♜','♞','♝','♛'][s % 4], w.frame);
         else {
           // Candelabrum
-          ctx.strokeStyle = '#241c30'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+          ctx.strokeStyle = '#1a1712'; ctx.lineWidth = 3; ctx.lineCap = 'round';
           ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x, gy - 44); ctx.stroke();
           ctx.beginPath(); ctx.moveTo(x - 14, gy - 44); ctx.lineTo(x + 14, gy - 44); ctx.stroke();
           [-14, 0, 14].forEach(function(dx, i) {
-            var f2 = w.frame * 0.2 + i;
-            ctx.fillStyle = '#e8e2d0';
-            ctx.fillRect(x + dx - 1.6, gy - 54, 3.2, 10);
-            ctx.fillStyle = '#ffb84a';
-            ctx.beginPath();
-            ctx.ellipse(x + dx + Math.sin(f2) * 1, gy - 57, 1.8, 3.6, 0, 0, Math.PI*2);
-            ctx.fill();
+            ctx.fillStyle = '#f7f3e4';
+            ctx.strokeStyle = '#1a1712'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.rect(x + dx - 1.6, gy - 54, 3.2, 10); ctx.fill(); ctx.stroke();
+            Draw.inkFlame(ctx, x + dx, gy - 54, 2, 7, i * 2.1);
           });
         }
       }
@@ -307,27 +306,23 @@ var World = (function() {
   }
 
   function drawDoors(ctx, w) {
-    var g = C.THEME.gothic;
     w.doors.forEach(function(d) {
       if (d.req === 'shade') {
-        // Shadow barrier: wavering violet veil
-        var a = 0.66 + Math.sin(w.frame * 0.1) * 0.12;
-        ctx.save();
-        ctx.shadowColor = 'rgba(150,70,255,0.8)';
-        ctx.shadowBlur = 10;
-        ctx.fillStyle = 'rgba(60,20,110,' + a + ')';
+        // Shadow barrier: wavering ink veil
+        var a = 0.55 + Math.sin(w.frame * 0.1) * 0.12;
+        ctx.fillStyle = 'rgba(26,23,18,' + a + ')';
         ctx.fillRect(d.x, d.y, d.w, d.h);
-        ctx.restore();
+        Draw.hatchRect(ctx, d.x, d.y, d.w, d.h, 'rgba(242,237,218,0.3)', 5, 1);
       } else {
         // Cracked / sealed stone
         var st = ctx.createLinearGradient(d.x, d.y, d.x + d.w, d.y);
-        st.addColorStop(0, '#4a4363'); st.addColorStop(1, '#2a2540');
+        st.addColorStop(0, '#9a9179'); st.addColorStop(1, '#6e6753');
         ctx.fillStyle = st;
         ctx.fillRect(d.x, d.y, d.w, d.h);
-        ctx.strokeStyle = '#0e0b1a'; ctx.lineWidth = 1.6;
+        ctx.strokeStyle = '#1a1712'; ctx.lineWidth = 1.6;
         ctx.strokeRect(d.x + 0.5, d.y + 0.5, d.w - 1, d.h - 1);
         if (d.req === 'crack') {
-          ctx.strokeStyle = '#12101c'; ctx.lineWidth = 2;
+          ctx.strokeStyle = '#1a1712'; ctx.lineWidth = 2;
           ctx.beginPath();
           ctx.moveTo(d.x + d.w/2 - 5, d.y + 8);
           ctx.lineTo(d.x + d.w/2 + 4, d.y + d.h*0.4);

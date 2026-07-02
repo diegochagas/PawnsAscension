@@ -460,9 +460,9 @@ var Enemies = (function() {
 
   function draw(ctx, e, theme) {
     if (e.dead) return;
+    // Corrupted pieces are created in the player's own color; regular enemies
+    // in the opposing color. Both just draw with their assigned color.
     var col = e.color;
-    // Corrupted white pieces: ivory body overrun by violet corruption
-    if (e.corrupted) col = '#f4edda';
     // Flicker when invincible
     if (e.iframes > 0 && Math.floor(e.iframes/4) % 2 === 0) return;
 
@@ -502,9 +502,9 @@ var Enemies = (function() {
       else Draw.sword(ctx, cx, cy, e.h, col, e.facing, e.attacking);
     }
 
-    // Corruption veins on possessed white pieces
+    // Corruption scribbles on possessed pieces (contrast tone of the body)
     if (e.corrupted) {
-      Draw.corruption(ctx, e.x, e.y, e.w, e.h, null, e.aiTimer + e.x);
+      Draw.corruption(ctx, e.x, e.y, e.w, e.h, col, e.aiTimer + e.x);
     }
 
     // HP bar (bosses get a big bar drawn by the HUD instead)
@@ -518,9 +518,9 @@ var Enemies = (function() {
     var sx = cx + e.facing * e.w * 0.62;
     var h = e.h;
     var steel = ctx.createLinearGradient(sx - 12, cy - h*0.75, sx + 12, cy - h*0.25);
-    steel.addColorStop(0, '#a8b0c4'); steel.addColorStop(1, '#5d647a');
+    steel.addColorStop(0, '#c5beaa'); steel.addColorStop(1, '#847c64');
     ctx.fillStyle = steel;
-    ctx.strokeStyle = '#12101c'; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#1a1712'; ctx.lineWidth = 2; ctx.lineJoin = 'round';
     ctx.beginPath();
     ctx.moveTo(sx - h*0.14, cy - h*0.78);
     ctx.lineTo(sx + h*0.14, cy - h*0.78);
@@ -528,7 +528,7 @@ var Enemies = (function() {
     ctx.quadraticCurveTo(sx, cy - h*0.24, sx - h*0.14, cy - h*0.42);
     ctx.closePath(); ctx.fill(); ctx.stroke();
     // Boss emblem
-    ctx.fillStyle = C.THEME.gothic.gold;
+    ctx.fillStyle = '#1a1712';
     ctx.beginPath(); ctx.arc(sx, cy - h*0.55, h*0.045, 0, Math.PI*2); ctx.fill();
   }
 

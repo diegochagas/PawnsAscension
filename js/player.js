@@ -394,12 +394,12 @@ var Player = (function() {
     var cy = p.y + p.h;
 
     if (p.adventure) {
-      var ink = theme.ink || theme.fg, paper = theme.white || '#fbf8ee';
-      Draw.hero(ctx, cx, cy, p.h, paper, ink, p.facing, p.attacking, p.dashTimer > 0, p.form);
-      if (p.spearOut) Draw.spear(ctx, p.spearOut.x, p.spearOut.y, C.SPEAR_W, C.SPEAR_H, p.spearOut.dir, paper);
+      var ink = theme.ink || theme.fg;
+      Draw.hero(ctx, cx, cy, p.h, p.color, ink, p.facing, p.attacking, p.dashTimer > 0, p.form);
+      if (p.spearOut) Draw.spear(ctx, p.spearOut.x, p.spearOut.y, C.SPEAR_W, C.SPEAR_H, p.spearOut.dir, p.color);
       p.magics.forEach(function(m) { Draw.magicBolt(ctx, m.x, m.y, m.r, ink, m.dist); });
       if (p.regening) Draw.healPulse(ctx, cx, p.y - 14, p.calmTimer, ink);
-      return; // health shown as HUD tally marks
+      return; // health shown on the HUD bar
     }
 
     Draw.player(ctx, cx, cy, p.h, col, p.facing, p.attacking, p.shielding, p.mounted, p.abilities);

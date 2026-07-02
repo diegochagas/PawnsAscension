@@ -84,10 +84,10 @@ var WaveManager = (function() {
     if (!theme) return;
 
     // Background: soft vertical gradient in the wave's theme
-    var dark = theme.bg === '#141021' || theme.bg === '#000000';
+    var dark = theme === C.THEME.dark;
     var bg = ctx.createLinearGradient(0, 0, 0, C.H);
-    if (dark) { bg.addColorStop(0, '#0d0b1c'); bg.addColorStop(1, '#251c42'); }
-    else      { bg.addColorStop(0, '#f2ecd9'); bg.addColorStop(1, '#d4c9ac'); }
+    if (dark) { bg.addColorStop(0, '#161410'); bg.addColorStop(1, '#26221b'); }
+    else      { bg.addColorStop(0, '#f5f0de'); bg.addColorStop(1, '#ddd5bc'); }
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, C.W, C.H);
     // Giant faded chess emblem watermark
@@ -95,7 +95,7 @@ var WaveManager = (function() {
     ctx.globalAlpha = 0.07;
     ctx.font = 'bold 300px serif';
     ctx.textAlign = 'center';
-    ctx.fillStyle = dark ? '#f4edda' : '#221c2e';
+    ctx.fillStyle = dark ? '#f2edda' : '#1a1712';
     ctx.fillText(dark ? '♞' : '♜', C.W/2, C.H*0.78);
     ctx.restore();
 

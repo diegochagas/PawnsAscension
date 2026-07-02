@@ -2,13 +2,16 @@
 
 **Pawn's Ascension** (formerly _Pawn's Ascension_) is a chess-themed action game from
 the **Eternal Boards** universe, designed with Alexandre Bezerra. It runs
-entirely in the browser — no build step, no dependencies — and is presented in
-a gothic, _Castlevania: Symphony of the Night_-inspired style: moonlit parallax
-backdrops, ornate gold UI, and every character drawn as a cartoon chess piece
-(the hero is a caped white pawn; the enemies are black pieces with glowing
-red eyes).
+entirely in the browser — no build step, no dependencies — and is presented
+entirely in **black and white**, like a pencil drawing on paper, with the
+layered parallax scenery and ornate UI of _Castlevania: Symphony of the
+Night_. Every character is a cartoon chess piece: the hero is a caped pawn,
+the mounted knight is an armored rider on a rearing warhorse with a
+checkered shield, and enemy pieces glower with pale skull-white eyes.
 
-It contains two modes:
+It contains two modes, and in **both** you choose to play as White or Black
+(the opposing side becomes the enemy; corrupted pieces of your own side
+appear from the Forge onward):
 
 - **Adventure** — a 2D action campaign across the six stages of the
   Chess Kingdom, selected from a castle map, with promotions, essence,
@@ -27,10 +30,11 @@ King:
 2. **Forge of the Black Pieces** · 5. **Abandoned Battlefield** ·
 3. **Castle of Shadows**
 
-Stages are chosen on the **castle map** — a chessboard path winding up to the
-Black King's castle. Each stage ends in a boss; locked stages show chains and
-a padlock until you clear the stage before them, and cleared stages are marked
-with a gold crown. You can replay cleared stages to farm essence. Some
+Stages are chosen on the **castle map** — a hand-drawn cross-section of the
+enemy castle, its white chambers linked by corridors, each chamber holding
+one stage. Each stage ends in a boss; locked chambers are hatched over with
+a padlock until you clear the stage before them, and cleared chambers are
+marked with a crown. You can replay cleared stages to farm essence. Some
 challenges still favor specific promotions (the Iron Cliffs boss hides behind
 a wall only the **Knight's L-jump** clears).
 
@@ -109,10 +113,10 @@ Then open `http://localhost:8000`.
 
 ## Project Structure
 
-- `index.html`, `style.css` — canvas + on-screen controller, gothic theme
-  (Cinzel display font).
-- `js/config.js` — balance values, forms, essence economy, gothic palette,
-  per-zone ambience (`C.ZONE_ART`).
+- `index.html`, `style.css` — canvas + on-screen controller, paper-and-ink
+  theme (Cinzel display font).
+- `js/config.js` — balance values, forms, essence economy, monochrome
+  palette, per-zone ambience (`C.ZONE_ART`).
 - `js/i18n.js` — EN/PT strings.
 - `js/game.js` — top-level state machine (menu → Adventure / Survive).
 - `js/adventure.js` — campaign controller: intro, castle stage map, HUD,
