@@ -1,138 +1,109 @@
 # Pawn's Ascension
 
-**Pawn's Ascension** (formerly _Pawn's Ascension_) is a chess-themed action game from
-the **Eternal Boards** universe, designed with Alexandre Bezerra. It runs
-entirely in the browser — no build step, no dependencies — and is presented
-entirely in **black and white**, like a pencil drawing on paper, with the
-layered parallax scenery and ornate UI of _Castlevania: Symphony of the
-Night_. Every character is a cartoon chess piece: the hero is a caped pawn,
-the mounted knight is an armored rider on a rearing warhorse with a
-checkered shield, and enemy pieces glower with pale skull-white eyes.
+A chess-themed **metroidvania** from the **Eternal Boards** universe, designed with
+Alexandre Bezerra. One interconnected castle in the spirit of _Super Metroid_ (grid map,
+ability-gated doors, backtracking, hidden upgrades) with the combat, stats and gothic
+presentation of _Castlevania: Symphony of the Night_ (levels and EXP, damage numbers,
+transformations, ornate HUD, save rooms with warps).
 
-It contains two modes, and in **both** you choose to play as White or Black
-(the opposing side becomes the enemy; corrupted pieces of your own side
-appear from the Forge onward):
+All sprites, bosses, backgrounds and terrain were generated with **Higgsfield** and turned
+into game assets by the scripts in `tools/`. Runs in the browser, no build step. English and
+Portuguese (toggle on the title screen or the PT/EN button).
 
-- **Adventure** — a 2D action campaign across the six stages of the
-  Chess Kingdom, selected from a castle map, with promotions, essence,
-  bonfire save points and bosses.
-- **Survive** — the original 8-wave arena game, kept as a secondary mode.
+## The story
 
-The interface is available in **English and Portuguese** (toggle on the main
-menu).
+The Black King has frozen the Chess Kingdom in an endless check. A forgotten pawn awakens
+in the training field below the castle. Climb, earn your promotions, claim the five boss
+seals and break the check of the Immobile King.
 
-## Adventure mode
+## The castle
 
-You are a white pawn who awoke. Cross the Chess Kingdom and reach the Black
-King:
+40 rooms across six areas, each with its own art, enemies and boss:
 
-1. **Pawns' Training Field** · 2. **Ambush Woods** · 3. **Iron Cliffs** ·
-2. **Forge of the Black Pieces** · 5. **Abandoned Battlefield** ·
-3. **Castle of Shadows**
+| Area | Boss | Reward |
+| --- | --- | --- |
+| Pawns' Training Field | Pawn Captain | **Rook** promotion |
+| Ambush Woods | Thorn Knight | **Knight** promotion, En Passant Boots (relic) |
+| Iron Cliffs | Iron Rook | **Bishop** promotion |
+| Forge of the Black Pieces | Forge Bishop | Crown Shard |
+| Abandoned Battlefield | Black Queen | **Queen** promotion |
+| Castle of Shadows | The Immobile King | the ending |
 
-Stages are chosen on the **castle map** — a hand-drawn cross-section of the
-enemy castle, its white chambers linked by corridors, each chamber holding
-one stage. Each stage ends in a boss; locked chambers are hatched over with
-a padlock until you clear the stage before them, and cleared chambers are
-marked with a crown. You can replay cleared stages to farm essence. Some
-challenges still favor specific promotions (the Iron Cliffs boss hides behind
-a wall only the **Knight's L-jump** clears).
+Doors are gated like Super Metroid's: cracked walls need the Rook dash, high walls and shafts
+need the Knight double jump, crystal seals need the Bishop bolt, low tunnels need the Pawn's
+slide, and the throne door opens only with all five boss seals. Crown Shards (+HP) and Mana
+Crystals (+MP) are hidden off the main path.
 
-### Essence and promotions
+### Promotions (switch any time with A / S, like SOTN's transformations)
 
-Defeated enemies drop **Black Essence**. Spend it at **chapel altars** to
-unlock promotions, and switch between unlocked forms at any altar:
+| Form | Power (C) | Notes |
+| --- | --- | --- |
+| Pawn | Slide under low gaps (↓+X, needs the relic) | fastest attacks |
+| Rook | Dash that breaks cracked walls | heavy hits, high defense, no knockback |
+| Knight | Double jump | fast |
+| Bishop | Diagonal + straight bolts (shatter crystal), ↑+C healing prayer | uses MP |
+| Queen | Every power | strongest |
 
-| Form         | Powers                                               |
-| ------------ | ---------------------------------------------------- |
-| Pawn         | Spear thrust (base form)                             |
-| Tower (30◆)  | Destructive dash (Shift), hard defense               |
-| Knight (40◆) | L-jump in mid-air (double jump), spinning attack     |
-| Bishop (40◆) | Magic bolt thrown ahead (Q), healing prayer (E)      |
-| Queen (150◆) | All of the above — requires Tower, Knight and Bishop |
+Enemies drop Black Essence, which is also experience: levels raise HP, MP, ATK and DEF.
+Q throws a spear sub-weapon (MP). Bonfires with the skeleton bard heal, save and warp you
+to any other bonfire you've lit.
 
-Corrupted white pieces (drawn light with dark scribbles) appear from the
-Forge onward and drop double essence; bosses drop five times as much.
-
-### Abilities (skill trees)
-
-Open **Abilities** from the pause menu. Two paths, per the original design:
-
-- **Inherited Memories** (white): First Stand (+25 max HP), Spear Advance
-  (throw/recall the spear), Still Healing (much faster standing-still
-  regeneration).
-- **Board Fragments** (dark): Destroyer Power (+50% damage), Heretic Dash
-  (faster dash recharge), Shadow Magic (stronger magic). The dark path is
-  remembered at the end…
-
-### Healing
-
-Stand still for about a second and the pawn slowly recovers health (a small
-cross pulses above him while it works) — in any form, in both modes. The
-Still Healing skill makes it kick in sooner and heal four times faster, and
-the Bishop/Queen prayer (E) heals instantly on a cooldown.
-
-### Bonfires
-
-Rest at a bonfire (↓) where the skeleton bard plays: you heal fully and your
-progress is saved (room, essence, forms, skills, opened gates). Enemies
-respawn. If you are captured, you return to your last bonfire. The HUD's
-flame icon shows how far the nearest bonfire is.
-
-## Survive mode
-
-The original game: choose black or white, fight eight waves, earn dash /
-spear / shield along the way, and save with the bard between waves. See the
-in-game prompts; it plays exactly as before.
+**Survive mode** (title menu) keeps the original wave game: a sealed arena, every promotion,
+endless waves and a boss every fifth wave.
 
 ## Controls
 
-| Action                                        | Keyboard             |
-| --------------------------------------------- | -------------------- |
-| Move                                          | `A`/`D` or `←`/`→`   |
-| Jump (and L-jump in air)                      | `W`, `↑`, or `Space` |
-| Attack / confirm                              | `Z` or `Enter`       |
-| Dash (Tower/Queen)                            | `Shift` or `X`       |
-| Power: spear throw or magic                   | `Q`                  |
-| Heal prayer (Bishop/Queen) / shield (Survive) | `E`                  |
-| Interact (bonfire/altar)                      | `S` or `↓`           |
-| Pause / back                                  | `P` or `Escape`      |
+| Action | Keyboard | Touch |
+| --- | --- | --- |
+| Move | ← → | D-pad |
+| Jump / double jump | X or Space | X |
+| Attack | Z | Z |
+| Form power | C | C |
+| Spear sub-weapon | Q | Q |
+| Switch form | A / S | ◁ ▷ |
+| Drop through platform / slide | ↓ + X | ▼ + X |
+| Interact (bonfire) | ↓ | ▼ |
+| Pause (map / status) | Esc or P | II |
 
-The on-screen controller mirrors these (D-pad, jump, attack, dash, power,
-heal/shield, pause) and works with mouse or touch.
-
-## Running the Game
-
-Open `index.html` in a modern browser, or serve the folder:
+## Running
 
 ```sh
-python -m http.server 8000
+python3 scripts/serve.py 5500
 ```
 
-Then open `http://localhost:8000`.
+Then open `http://localhost:5500`. (ES modules need a server; opening the file directly won't
+work.) Test hooks: `?room=<id>` starts in a room, `?give=rook,knight,slide` grants items,
+`?xp=500` sets experience, `?scene=survive` opens Survive.
 
-## Project Structure
+## Architecture
 
-- `index.html`, `style.css` — canvas + on-screen controller, paper-and-ink
-  theme (Cinzel display font).
-- `js/config.js` — balance values, forms, essence economy, monochrome
-  palette, per-zone ambience (`C.ZONE_ART`).
-- `js/i18n.js` — EN/PT strings.
-- `js/game.js` — top-level state machine (menu → Adventure / Survive).
-- `js/adventure.js` — campaign controller: intro, castle stage map, HUD,
-  altar/skills screens, saving, endings.
-- `js/world.js`, `js/rooms.js`, `js/camera.js` — room engine, stage data
-  (`Rooms.STAGES`), scrolling camera.
-- `js/survive.js`, `js/wave.js`, `js/platforms.js` — the wave mode.
-- `js/player.js`, `js/enemies.js`, `js/physics.js` — combat and movement.
-- `js/draw.js`, `js/ui.js`, `js/audio.js` — cartoon chess-piece sprites,
-  parallax zone paintings, ornate SOTN-style UI kit, Survive UI, synthesized
-  sound.
+```
+art-src/ (Higgsfield originals, gitignored)
+   │  tools/gen_art.py        batch generation (nano_banana_pro)
+   │  tools/build_assets.py   key magenta, slice sheets, pack atlases
+   ▼
+assets/  chars.png props.png sprites.json zN_far/mid/tiles.png title.png
+   │
+js/main.js ── fixed 60 Hz loop ── scenes/{title, play, survive}
+                                     │
+          game/session.js  room, hero, enemies, shots, save data, camera
+            ├─ world/map.js       rooms on a grid + gated links (the castle)
+            ├─ world/roomgen.js   seeded tilemap per room (doors, ladders, gates)
+            ├─ world/decor.js     platforms, pits, spawns, props
+            ├─ entities/          hero, enemies (8 AIs), bosses (move sets), projectiles
+            ├─ game/combat.js     hits, damage numbers, EXP, boss seals
+            └─ game/props.js      bonfire save/warp, altars, chests
+          render/  level (parallax + baked tiles), hud (SOTN bars + SM minimap), screens, fx
+```
 
-## Design
+Pure modules (`world/*`, `physics`, `stats`, `save`, `progress`) have no DOM access; the
+world tests run a tile-level reachability search over every generated room to prove each
+door is reachable with exactly the powers its gate requires, and simulate a full
+playthrough to prove the castle can be finished in order.
 
-The game follows the design developed in the WhatsApp group "Game Designer
-Xadrez Metroidvania" (see `PLAN-V2.md`): title _Pawn's Ascension_, franchise
-_Eternal Boards_, the Realmkeeper narrator, plague-doctor bishop, skeletal
-bard at the bonfires, tally-mark health, and the dual skill tree
-(_Memórias Herdadas_ / _Fragmentos do Tabuleiro_).
+## Tests
+
+```sh
+scripts/check            # unit tests + clean-code audit (also the pre-push hook)
+npm install && npx playwright test   # e2e + screenshots in e2e/screenshots/
+```

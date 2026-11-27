@@ -1,114 +1,59 @@
-var Input = (function() {
-  var state = {
-    left:false, right:false, up:false, down:false,
-    attack:false, jump:false, dash:false, spear:false, shield:false, pause:false,
-    attackJustPressed:false, jumpJustPressed:false, dashJustPressed:false,
-    spearJustPressed:false, pauseJustPressed:false,
-    leftJustPressed:false, rightJustPressed:false, shieldJustPressed:false,
-    downJustPressed:false, upJustPressed:false,
-  };
-  var prev = {};
+// Keyboard + touch buttons mapped to game actions, with per-frame "pressed" edges.
 
-  function copyState() {
-    var s = {};
-    for (var k in state) s[k] = state[k];
-    return s;
+const KEYS = {
+  ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down',
+  KeyZ: 'attack', KeyX: 'jump', Space: 'jump', KeyC: 'power', KeyQ: 'sub',
+  KeyA: 'prevForm', KeyS: 'nextForm', Enter: 'start', Escape: 'pause', KeyP: 'pause',
+  KeyJ: 'attack', KeyK: 'jump', KeyL: 'power', KeyW: 'up',
+};
+
+export const ACTIONS = ['left', 'right', 'up', 'down', 'attack', 'jump', 'power', 'sub', 'prevForm', 'nextForm', 'start', 'pause'];
+
+/** Live input state; call frame() once per tick to update edges. */
+export class Input {
+  constructor() {
+    this.down = Object.fromEntries(ACTIONS.map((a) => [a, false]));
+    this.prev = { ...this.down };
+    this.pressed = { ...this.down };
+    this.latched = new Set(); // taps shorter than one frame still count
   }
 
-  // Keyboard map
-  var keyMap = {
-    ArrowLeft:'left',  KeyA:'left',
-    ArrowRight:'right', KeyD:'right',
-    ArrowUp:'jump',  KeyW:'jump', Space:'jump',
-    ArrowDown:'down', KeyS:'down',
-    KeyZ:'attack', Enter:'attack',
-    ShiftLeft:'dash', ShiftRight:'dash', KeyX:'dash',
-    KeyQ:'spear',
-    KeyE:'shield',
-    Escape:'pause', KeyP:'pause',
-  };
+  /** Attach keyboard and on-screen button listeners. */
+  bind(doc) {
+    doc.addEventListener('keydown', (e) => this.key(e, true));
+    doc.addEventListener('keyup', (e) => this.key(e, false));
+    doc.querySelectorAll('[data-action]').forEach((el) => this.bindButton(el));
+  }
 
-  document.addEventListener('keydown', function(e) {
-    var a = keyMap[e.code];
-    if (a) { state[a] = true; e.preventDefault(); }
-  });
-  document.addEventListener('keyup', function(e) {
-    var a = keyMap[e.code];
-    if (a) state[a] = false;
-  });
+  key(event, isDown) {
+    const action = KEYS[event.code];
+    if (!action) return;
+    if (isDown && !event.repeat) this.latched.add(action);
+    this.down[action] = isDown;
+    event.preventDefault();
+  }
 
-  // Virtual controller buttons
-  function bindBtn(id, action) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('pointerdown', function(e) {
+  bindButton(el) {
+    const action = el.dataset.action;
+    const set = (v) => (e) => {
       e.preventDefault();
-      state[action] = true;
-      el.classList.add('pressed');
-    });
-    el.addEventListener('pointerup', function(e) {
-      e.preventDefault();
-      state[action] = false;
-      el.classList.remove('pressed');
-    });
-    el.addEventListener('pointerleave', function(e) {
-      state[action] = false;
-      el.classList.remove('pressed');
-    });
-    el.addEventListener('pointercancel', function(e) {
-      state[action] = false;
-      el.classList.remove('pressed');
-    });
-    // Fallback for environments that only fire click (e.g. automated testing)
-    el.addEventListener('click', function(e) {
-      state[action] = true;
-      el.classList.add('pressed');
-      setTimeout(function() { state[action] = false; el.classList.remove('pressed'); }, 80);
-    });
+      if (v) this.latched.add(action);
+      this.down[action] = v;
+      el.classList.toggle('on', v);
+    };
+    el.addEventListener('pointerdown', set(true));
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach((n) => el.addEventListener(n, set(false)));
   }
 
-  bindBtn('btn-left',   'left');
-  bindBtn('btn-right',  'right');
-  bindBtn('btn-up',     'jump');
-  bindBtn('btn-down',   'down');
-  bindBtn('btn-jump',   'jump');
-  bindBtn('btn-attack', 'attack');
-  bindBtn('btn-dash',   'dash');
-  bindBtn('btn-spear',  'spear');
-  bindBtn('btn-shield', 'shield');
-  bindBtn('btn-pause',  'pause');
-
-  function lockBtn(id) {
-    var el = document.getElementById(id);
-    if (el) { el.classList.add('locked'); el.style.pointerEvents = 'none'; }
-  }
-  function unlockBtn(id) {
-    var el = document.getElementById(id);
-    if (el) { el.classList.remove('locked'); el.style.pointerEvents = ''; }
+  /** Compute this tick's pressed edges. */
+  frame() {
+    for (const a of ACTIONS) this.pressed[a] = (this.down[a] && !this.prev[a]) || this.latched.has(a);
+    this.latched.clear();
+    this.prev = { ...this.down };
   }
 
-  return {
-    get: function() { return state; },
-    update: function() {
-      state.jumpJustPressed  = state.jump   && !prev.jump;
-      state.attackJustPressed= state.attack && !prev.attack;
-      state.dashJustPressed  = state.dash   && !prev.dash;
-      state.spearJustPressed = state.spear  && !prev.spear;
-      state.pauseJustPressed = state.pause  && !prev.pause;
-      state.leftJustPressed   = state.left   && !prev.left;
-      state.rightJustPressed  = state.right  && !prev.right;
-      state.shieldJustPressed = state.shield && !prev.shield;
-      state.downJustPressed   = state.down   && !prev.down;
-      state.upJustPressed     = state.jump   && !prev.jump;
-      prev = copyState();
-    },
-    unlockAbility: function(ability) {
-      if (ability === 'dash')   unlockBtn('btn-dash');
-      if (ability === 'spear')  unlockBtn('btn-spear');
-      if (ability === 'shield') unlockBtn('btn-shield');
-    },
-    lockAllAbilities: function() {
-      lockBtn('btn-dash'); lockBtn('btn-spear'); lockBtn('btn-shield');
-    },
-  };
-})();
+  /** Confirm = Enter or attack (menus). */
+  confirm() {
+    return this.pressed.start || this.pressed.attack;
+  }
+}

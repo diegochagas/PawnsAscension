@@ -1,174 +1,68 @@
-var C = {
-  W: 800, H: 450,
-  GRAVITY: 0.58,
-  MAX_FALL: 22,
-  GROUND: 450,
+// Game-wide constants: screen, tiles, physics, forms, enemies, bosses.
+// Tuned so a single jump clears 5 tiles and a Knight double jump ~9 tiles;
+// the room generator and the reachability test rely on these numbers.
 
-  // Current world bounds (rooms can be larger than the canvas).
-  // Survive mode resets these to W/H; Adventure sets them per room.
-  ROOM_W: 800, ROOM_H: 450,
+export const VIEW_W = 480;
+export const VIEW_H = 272;
+export const TILE = 16;
+export const CELL_W = 30; // tiles per map cell (one screen), like Super Metroid's map squares
+export const CELL_H = 17;
 
-  // Player
-  PW: 22, PH: 32,
-  PSPD: 3.6,
-  PJUMP: -13.2,
-  PHP: 100,
-  WAVE_HEAL: 30,
-
-  // Sword / spear thrust
-  ATK_DMG: 10,
-  ATK_RANGE: 56,
-  ATK_DUR: 14,    // frames hitbox is active
-  ATK_CD: 26,     // frames between attacks
-  ATK_KNOCKBACK: 4.5,
-
-  // Dash (Survive: unlocked after wave 3 / Adventure: Tower form)
-  DASH_V: 12,
-  DASH_DUR: 11,
-  DASH_CD: 68,
-  DASH_IF: 15,    // invincibility frames
-
-  // Spear (Survive: unlocked after wave 5 / Adventure: skill)
-  SPEAR_V: 10,
-  SPEAR_DMG: 18,
-  SPEAR_W: 44, SPEAR_H: 7,
-  SPEAR_MAX: 300, // max travel distance before stopping
-
-  // Shield (Survive: unlocked after wave 6)
-  SHIELD_BLOCK: 0.85,
-
-  // Bishop magic (Adventure)
-  MAGIC_V: 7,
-  MAGIC_DMG: 14,
-  MAGIC_R: 9,      // projectile radius
-  MAGIC_CD: 55,
-  MAGIC_MAX: 420,   // horizontal travel distance before the bolt fades
-
-  // Heal prayer (Adventure, Bishop/Queen form)
-  HEAL_AMOUNT: 25,
-  HEAL_CD: 600,
-
-  // Platform
-  PLT_H: 14,
-
-  // Enemy base stats
-  ENEMY: {
-    pawn:   { hp: 35,  spd: 1.4, dmg: 8,  ar: 40,  ac: 44, w: 20, h: 28 },
-    knight: { hp: 95,  spd: 2.8, dmg: 13, ar: 52,  ac: 34, w: 24, h: 52 },
-    bishop: { hp: 60,  spd: 1.6, dmg: 10, ar: 240, ac: 58, w: 20, h: 30 },
-    tower:  { hp: 100, spd: 1.1, dmg: 9,  ar: 44,  ac: 50, w: 26, h: 34 },
-    queen:  { hp: 175, spd: 2.2, dmg: 16, ar: 56,  ac: 26, w: 22, h: 34 },
-    king:   { hp: 270, spd: 1.8, dmg: 18, ar: 56,  ac: 30, w: 30, h: 40 },
-  },
-
-  // Black Essence dropped per enemy type (Adventure)
-  ESSENCE: {
-    pawn: 5, knight: 12, bishop: 10, tower: 12, queen: 40, king: 100,
-    corruptedMul: 2, bossMul: 5,
-  },
-
-  // Promotion costs at chapel altars (Adventure)
-  FORM_COST: { tower: 30, knight: 40, bishop: 40, queen: 150 },
-
-  // Form stat modifiers (Adventure)
-  FORM: {
-    pawn:   { spd: 1.0,  def: 1.0,  dmg: 1.0 },
-    tower:  { spd: 0.85, def: 0.55, dmg: 1.15 },
-    knight: { spd: 1.15, def: 1.0,  dmg: 1.0 },
-    bishop: { spd: 1.0,  def: 1.0,  dmg: 0.9 },
-    queen:  { spd: 1.1,  def: 0.7,  dmg: 1.2 },
-  },
-
-  // Skill costs (Adventure) — white path / dark path
-  SKILL: {
-    vigor:     { cost: 20, path: 'white' },
-    spear:     { cost: 25, path: 'white' },
-    calm:      { cost: 40, path: 'white' },
-    destroyer: { cost: 30, path: 'dark' },
-    hdash:     { cost: 30, path: 'dark' },
-    dmagic:    { cost: 40, path: 'dark' },
-  },
-
-  // Wave definitions (Survive mode)
-  WAVES: [
-    { num: 1, enemies: [{type:'pawn',count:4}],  theme:'light' },
-    { num: 2, enemies: [{type:'pawn',count:4}],  theme:'dark',  bard:true },
-    { num: 3, enemies: [{type:'knight',count:1}],theme:'light', unlock:'dash' },
-    { num: 4, enemies: [{type:'knight',count:1}],theme:'dark',  bard:true },
-    { num: 5, enemies: [{type:'bishop',count:2}],theme:'light', unlock:'spear' },
-    { num: 6, enemies: [{type:'tower', count:2}],theme:'dark',  bard:true, unlock:'shield' },
-    { num: 7, enemies: [{type:'queen', count:1}],theme:'light' },
-    { num: 8, enemies: [{type:'tower', count:2},{type:'king',count:1}], theme:'dark', bard:true },
-  ],
-
-  // Colors per theme
-  THEME: {
-    light: { bg:'#f2edda', fg:'#1a1712', plt:'#57514a', pltStroke:'#1a1712', ui:'#1a1712', uiBg:'rgba(242,237,218,0.85)' },
-    dark:  { bg:'#161410', fg:'#f2edda', plt:'#57514a', pltStroke:'#0c0b08', ui:'#f2edda', uiBg:'rgba(22,20,16,0.85)' },
-  },
-
-  // Gothic display font (Cinzel loaded via index.html, serif fallbacks)
-  FONT_GOTH: '"Cinzel", "Trajan Pro", Georgia, "Times New Roman", serif',
-  FONT_BODY: 'Georgia, "Palatino Linotype", "Times New Roman", serif',
+export const PHYS = {
+  gravity: 0.42,
+  maxFall: 7.5,
+  jumpV: -8.2,       // ~80 px = 5 tiles
+  doubleJumpV: -7.4, // second jump adds ~65 px
+  runSpeed: 2.1,
+  accel: 0.35,
+  friction: 0.3,
+  coyoteFrames: 6,
 };
 
-// Monochrome ink-on-paper palette (whole game). Key names are kept from the
-// earlier gothic palette so call sites keep working: "gold" now means ink
-// ornament, "blood" means heavy ink, and so on.
-C.THEME.gothic = {
-  // Paper & panels
-  bg:      '#f2edda',
-  panel:   'rgba(246,242,228,0.96)',
-  panel2:  'rgba(233,227,206,0.95)',
-  gold:    '#1a1712',
-  goldHi:  '#1a1712',
-  goldLo:  '#57514a',
-  text:    '#1a1712',
-  textDim: 'rgba(26,23,18,0.52)',
-  blood:   '#1a1712',
-  bloodLo: '#57514a',
-  mana:    '#8a8272',
-  manaLo:  '#57514a',
-  arcane:  '#3a352c',
+export const REACH = { jumpTiles: 5, doubleJumpTiles: 9, ladderStep: 4, knightWall: 7 };
 
-  // Chess piece palettes
-  ivory:   '#f7f3e4', ivoryHi:'#fffdf4', ivoryLo:'#cfc7ac', ivoryDk:'#968c6d',
-  onyx:    '#26221b', onyxHi: '#4c463a', onyxLo: '#14110c', onyxDk:'#080705',
-  outline: '#0c0a07',
-  outlineW:'#2a2318',
-  eye:     '#f7f3e4',
-  eyeGlow: 'rgba(247,243,228,0.5)',
+export const HERO = { w: 12, h: 28, slideH: 12, invuln: 60, baseHp: 80, baseMp: 30 };
 
-  // Legacy key aliases (older draw paths read these)
-  paper:'#f2edda', ink:'#1a1712', white:'#f7f3e4', faded:'rgba(26,23,18,0.45)',
-  fg:'#1a1712', plt:'#57514a', pltStroke:'#1a1712',
-  ui:'#1a1712', uiBg:'rgba(242,237,218,0.88)',
+// Promotions (SOTN-style transformations): each form owns a traversal power.
+export const FORMS = {
+  pawn:   { speed: 1.0,  atk: 1.0, def: 1.0, power: 'slide', reach: 30, cd: 18 },
+  rook:   { speed: 0.85, atk: 1.4, def: 0.6, power: 'dash',  reach: 30, cd: 26 },
+  knight: { speed: 1.15, atk: 1.1, def: 1.0, power: 'doubleJump', reach: 34, cd: 20 },
+  bishop: { speed: 1.0,  atk: 0.9, def: 1.0, power: 'bolt',  reach: 26, cd: 22 },
+  queen:  { speed: 1.15, atk: 1.6, def: 0.6, power: 'all',   reach: 38, cd: 18 },
 };
-// Everything that referenced the old paper theme now gets this one.
-C.THEME.paper = C.THEME.gothic;
+export const FORM_ORDER = ['pawn', 'rook', 'knight', 'bishop', 'queen'];
 
-// Hand-drawn font alias kept for legacy call sites — now maps to the gothic body font.
-C.FONT_HAND = C.FONT_BODY;
+export const POWER = {
+  dash:  { speed: 5.2, frames: 14, cooldown: 30, mp: 0 },
+  bolt:  { speed: 4.5, mp: 4, cooldown: 24, dmg: 14 },
+  slide: { speed: 3.6, frames: 18 },
+  spear: { speed: 6, mp: 3, cooldown: 30, dmg: 10 },
+  pray:  { mp: 12, heal: 30, cooldown: 120 },
+};
 
-// Per-zone ambience for parallax backgrounds (Adventure). Everything is
-// pencil-grayscale on paper; zones differ by silhouettes, tone and particles.
-C.ZONE_ART = [
-  // 0 — Pawns' Training Field: open meadow before the castle
-  { skyTop:'#f5f0de', skyBot:'#ece6d0', horizon:'#ddd5bc', far:'#b3ab92', mid:'#847c64',
-    fog:'rgba(26,23,18,0.05)', particles:'fireflies', moon:true, stars:true },
-  // 1 — Ambush Woods: strangled forest, heavier tone
-  { skyTop:'#efe9d5', skyBot:'#ded7bf', horizon:'#c7bfa4', far:'#9a9179', mid:'#5f5946',
-    fog:'rgba(26,23,18,0.08)', particles:'leaves', moon:true, stars:false },
-  // 2 — Iron Cliffs: pale windswept crags
-  { skyTop:'#f5f0de', skyBot:'#e6dfc9', horizon:'#d2cab0', far:'#a49c83', mid:'#6e6753',
-    fog:'rgba(26,23,18,0.05)', particles:'wind', moon:true, stars:true },
-  // 3 — Forge of the Black Pieces: soot-dark industry
-  { skyTop:'#e6dfc9', skyBot:'#cdc5aa', horizon:'#b3ab92', far:'#6e6753', mid:'#453f32',
-    fog:'rgba(26,23,18,0.10)', particles:'embers', moon:false, stars:false },
-  // 4 — Abandoned Battlefield: ashen ruin
-  { skyTop:'#f0ead7', skyBot:'#dcd4bb', horizon:'#c2ba9f', far:'#948c73', mid:'#57514a',
-    fog:'rgba(26,23,18,0.08)', particles:'ash', moon:true, stars:false },
-  // 5 — Castle of Shadows: the dark halls
-  { skyTop:'#e2dbc4', skyBot:'#c9c1a6', horizon:'#b3ab92', far:'#6e6753', mid:'#3a352c',
-    fog:'rgba(26,23,18,0.10)', particles:'dust', moon:false, stars:false },
-];
+// Enemy stats. xp doubles as Black Essence (SOTN gold + experience in one).
+export const ENEMIES = {
+  pawn:    { hp: 18, atk: 8,  def: 1, xp: 6,  w: 14, h: 26, speed: 0.7, ai: 'walker' },
+  knight:  { hp: 48, atk: 14, def: 3, xp: 20, w: 30, h: 34, speed: 2.2, ai: 'charger' },
+  bishop:  { hp: 30, atk: 10, def: 2, xp: 16, w: 14, h: 30, speed: 0.4, ai: 'caster' },
+  rook:    { hp: 70, atk: 16, def: 6, xp: 26, w: 22, h: 34, speed: 0.45, ai: 'walker' },
+  bat:     { hp: 10, atk: 6,  def: 0, xp: 5,  w: 16, h: 12, speed: 1.1, ai: 'flyer' },
+  wraith:  { hp: 22, atk: 9,  def: 1, xp: 12, w: 16, h: 22, speed: 0.6, ai: 'floater' },
+  crawler: { hp: 14, atk: 7,  def: 4, xp: 7,  w: 16, h: 12, speed: 0.5, ai: 'crawler' },
+  corrupt: { hp: 34, atk: 12, def: 2, xp: 18, w: 14, h: 26, speed: 0.5, ai: 'shooter' },
+};
+
+export const BOSSES = {
+  captain:  { hp: 160, atk: 14, def: 2, xp: 120, w: 36, h: 64, moves: ['charge', 'leap'] },
+  thorn:    { hp: 240, atk: 16, def: 3, xp: 200, w: 64, h: 70, moves: ['charge', 'thorns'] },
+  ironrook: { hp: 340, atk: 20, def: 6, xp: 300, w: 56, h: 90, moves: ['leap', 'quake', 'spread'] },
+  forge:    { hp: 380, atk: 22, def: 4, xp: 380, w: 44, h: 80, moves: ['spread', 'rain', 'summon'] },
+  queen:    { hp: 460, atk: 24, def: 4, xp: 500, w: 36, h: 80, moves: ['teleport', 'spread', 'rain'] },
+  king:     { hp: 700, atk: 28, def: 6, xp: 0,   w: 80, h: 110, moves: ['rain', 'summon', 'spread', 'quake'] },
+};
+
+export const LEVEL = { base: 40, growth: 1.35, hpPer: 8, mpPer: 3, atkPer: 1, defPer: 1, max: 50 };
+
+export const SHARD_HP = 20; // Crown Shard = Super Metroid energy tank
+export const CRYSTAL_MP = 10;
