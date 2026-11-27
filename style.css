@@ -1,111 +1,94 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #07050d;
+  --gold: #c9a24a;
+  --ink: #f4e4b0;
+  --btn: rgba(40, 28, 70, 0.75);
+}
 
-body {
-  /* Dark desk around the paper */
-  background:
-    radial-gradient(ellipse at 50% 20%, #2e2a22 0%, #1c1913 55%, #12100b 100%);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Press Start 2P", monospace;
   overflow: hidden;
+  touch-action: none;
 }
 
 #wrapper {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100%;
-  max-width: 900px;
-  height: 100vh;
-}
-
-#gameCanvas {
-  display: block;
-  width: 100%;
-  max-height: 70vh;
-  object-fit: contain;
-  background: #f2edda;
-  border: 2px solid #1a1712;
-  border-top: none;
-  box-shadow:
-    0 0 0 1px #0c0a07,
-    0 6px 30px rgba(0, 0, 0, 0.7);
-  flex-shrink: 0;
-}
-
-/* ── Virtual Controller ── */
-#controller {
-  width: 100%;
-  max-width: 900px;
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 24px;
-  background: linear-gradient(#1c1913, #12100b);
-  border-top: 1px solid #3a352c;
+  justify-content: center;
+  height: 100%;
   gap: 8px;
 }
 
-.ctrl-btn {
-  background: linear-gradient(#2e2a22, #1c1913);
-  color: #ddd5bc;
-  border: 2px solid #57514a;
-  border-radius: 6px;
-  font-size: 18px;
+#game {
+  width: min(100vw, calc((100vh - 40px) * 480 / 272));
+  aspect-ratio: 480 / 272;
+  image-rendering: pixelated;
+  border: 2px solid #2a1e44;
+  box-shadow: 0 0 40px rgba(120, 60, 200, 0.25);
+  background: #000;
+}
+
+#lang {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font: inherit;
+  font-size: 10px;
+  color: var(--ink);
+  background: var(--btn);
+  border: 1px solid var(--gold);
+  padding: 6px 8px;
   cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.05s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-.ctrl-btn:active, .ctrl-btn.pressed {
-  background: linear-gradient(#57514a, #3a352c);
-  border-color: #f2edda;
-  color: #f2edda;
-}
-.ctrl-btn.locked { opacity: 0.25; pointer-events: none; }
-
-/* D-pad */
-#dpad { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.dpad-row { display: flex; gap: 3px; align-items: center; }
-.dpad-btn { width: 52px; height: 52px; }
-.dpad-mid  { width: 52px; height: 52px; background: #0c0a07; border-radius: 4px; }
-
-/* Center */
-#center-btns { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.sys-btn { width: 38px; height: 24px; font-size: 11px; border-radius: 12px; }
-
-/* Action pad */
-#action-pad { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.act-row { display: flex; gap: 6px; align-items: center; }
-.act-btn  { width: 52px; height: 52px; border-radius: 50%; font-size: 20px; }
-.jump-row { justify-content: flex-end; }
-.jump-btn {
-  width: 100px; height: 44px;
-  border-radius: 22px;
-  font-size: 13px;
-  font-weight: bold;
-  letter-spacing: 2px;
-  background: linear-gradient(#ddd5bc, #a49c83);
-  border-color: #f2edda;
-  color: #1a1712;
-}
-.jump-btn:active, .jump-btn.pressed {
-  background: linear-gradient(#f2edda, #ddd5bc);
-  color: #1a1712;
 }
 
-/* Desktop: show controller but smaller */
-@media (min-width: 768px) {
-  #gameCanvas { max-height: 65vh; }
-  #controller { padding: 8px 32px; }
-  .dpad-btn, .act-btn, .dpad-mid { width: 44px; height: 44px; }
-  .jump-btn { width: 80px; height: 36px; }
+#hint { margin: 0; font-size: 8px; opacity: 0.6; text-align: center; padding: 0 16px; }
+
+#touch { display: none; }
+
+@media (pointer: coarse) {
+  #hint { display: none; }
+  #game { width: 100vw; border: 0; }
+  #touch {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 100%;
+    padding: 0 16px 12px;
+  }
+  #touch button {
+    font: inherit;
+    font-size: 12px;
+    color: var(--ink);
+    background: var(--btn);
+    border: 1px solid var(--gold);
+    border-radius: 50%;
+    width: 52px;
+    height: 52px;
+    touch-action: none;
+    user-select: none;
+  }
+  #touch button.on { background: rgba(201, 162, 74, 0.6); }
+  .pad { display: grid; grid-template: repeat(3, 52px) / repeat(3, 52px); }
+  .pad [data-action="up"] { grid-area: 1 / 2; }
+  .pad [data-action="left"] { grid-area: 2 / 1; }
+  .pad [data-action="right"] { grid-area: 2 / 3; }
+  .pad [data-action="down"] { grid-area: 3 / 2; }
+  .mid { display: flex; gap: 6px; }
+  .mid button { width: 40px !important; height: 32px !important; border-radius: 8px !important; font-size: 9px !important; }
+  .acts { display: grid; grid-template: repeat(2, 56px) / repeat(2, 56px); gap: 4px; }
+}
+
+@media (pointer: coarse) and (orientation: landscape) {
+  #wrapper { flex-direction: row; }
+  #game { width: auto; height: 100vh; }
+  #touch { position: absolute; inset: auto 0 0 0; pointer-events: none; }
+  #touch > div { pointer-events: auto; opacity: 0.7; }
 }
