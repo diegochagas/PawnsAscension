@@ -53,8 +53,9 @@ function moveY(body, getTile, info) {
 
 function touchesSpikes(body, getTile) {
   const [tx0, tx1] = tileRange(body.x + 2, body.x + body.w - 2);
-  const ty = Math.floor((body.y + body.h + 1) / TILE);
-  for (let tx = tx0; tx <= tx1; tx++) if (getTile(tx, ty) === TILES.SPIKES) return true;
+  // Spikes are not solid: the feet sink into the spike row and rest on the tile below it.
+  const rows = [Math.floor((body.y + body.h - 1) / TILE), Math.floor((body.y + body.h + 1) / TILE)];
+  for (const ty of rows) for (let tx = tx0; tx <= tx1; tx++) if (getTile(tx, ty) === TILES.SPIKES) return true;
   return false;
 }
 
@@ -85,7 +86,12 @@ export function boxBlocked(x, y, w, h, getTile) {
   return false;
 }
 
-/** Axis-aligned overlap test. */
+/**
+ * Axis-aligned overlap test.
+ * @param {{x:number,y:number,w:number,h:number}} a
+ * @param {{x:number,y:number,w:number,h:number}} b
+ * @returns {boolean}
+ */
 export function overlaps(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }

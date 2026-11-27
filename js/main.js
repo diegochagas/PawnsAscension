@@ -29,12 +29,12 @@ function safeStorage() {
 }
 
 function debugGame() {
-  let data = newGame();
+  const progress = newGame();
   const room = params.get('room');
-  if (room && roomIndex().has(room)) data.room = room;
-  for (const item of (params.get('give') || '').split(',').filter(Boolean)) data.owned = collect(data.owned, item);
-  if (params.get('xp')) data.xp = Number(params.get('xp'));
-  return data;
+  if (room && roomIndex().has(room)) { progress.room = room; progress.respawn = room; }
+  for (const item of (params.get('give') || '').split(',').filter(Boolean)) progress.owned = collect(progress.owned, item);
+  if (params.get('xp')) progress.xp = Number(params.get('xp'));
+  return progress;
 }
 
 function goTo(name) {
@@ -44,8 +44,8 @@ function goTo(name) {
 
 function start(kind) {
   if (kind === 'survive') { scene = new SurviveScene(storage, goTo); return; }
-  const data = kind === 'continue' && storage ? loadGame(storage) : params.has('room') ? debugGame() : newGame();
-  scene = new PlayScene(data || newGame(), storage, goTo);
+  const progress = kind === 'continue' && storage ? loadGame(storage) : params.has('room') ? debugGame() : newGame();
+  scene = new PlayScene(progress || newGame(), storage, goTo);
   if (kind === 'new_game') scene.s.save();
 }
 

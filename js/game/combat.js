@@ -19,6 +19,7 @@ function onKill(s, foe) {
 }
 
 function hitBoss(s, boss, amount) {
+  if (boss.state === 'intro' || boss.alpha < 0.5) return; // invulnerable: no fake damage numbers
   const dmg = damage(amount, boss.def.def);
   if (!boss.hurt(dmg)) {
     s.fx.number(boss.centerX, boss.y + 10, dmg, '#ffffff');
@@ -32,11 +33,11 @@ function bossDefeated(s, boss) {
   s.fx.burst(boss.centerX, boss.centerY, '#ff5080', 60, 4);
   s.shake(30);
   s.sound('kill');
-  s.data.bosses.push(boss.id);
+  s.progress.bosses.push(boss.id);
   s.room.unlockDoors();
   s.enemies = [];
   if (boss.id === 'king') { s.victory = 180; return; }
-  s.data.owned.seals.push(boss.id);
+  s.progress.owned.seals.push(boss.id);
   s.gainXp(boss.def.xp);
   s.fx.show(t(`boss_${boss.id}`), 200, t('seal'));
 }

@@ -11,6 +11,7 @@ export function newGame() {
   return {
     version: SAVE_VERSION,
     room: START_ROOM,
+    respawn: START_ROOM, // last bonfire rested at: Continue and deaths start here
     owned: newOwned(),
     xp: 0,
     form: 'pawn',

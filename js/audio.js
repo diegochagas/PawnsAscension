@@ -49,7 +49,10 @@ const SFX = {
   form: () => tone(440, 0.25, 'triangle', 0.2, 660),
 };
 
-/** Play a sound effect by name (unknown names are ignored). */
+/**
+ * Play a sound effect by name (unknown names are ignored).
+ * @param {string} name key of SFX, e.g. 'jump'
+ */
 export function sfx(name) {
   if (SFX[name]) SFX[name]();
 }
@@ -59,7 +62,10 @@ const SCALES = [
   [87, 104, 117, 131, 156], [104, 123, 139, 156, 185], [92, 110, 123, 139, 165],
 ];
 
-/** Start (or switch) the looping area theme. */
+/**
+ * Start (or switch) the looping area theme.
+ * @param {number} area index into AREAS
+ */
 export function playMusic(area) {
   if (!ensure() || music.area === area) return;
   stopMusic();
@@ -74,6 +80,7 @@ export function playMusic(area) {
   }, 260);
 }
 
+/** Stop the area theme (death, quitting to the title). */
 export function stopMusic() {
   if (music.timer) clearInterval(music.timer);
   music = { timer: null, area: -1 };

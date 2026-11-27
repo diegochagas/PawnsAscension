@@ -93,6 +93,11 @@ function wallProps(grid, rnd, randInt) {
 
 /**
  * Fill a room with decoration, spawns and props according to its kind.
+ * @param {import('./roomgen.js').Grid} grid tiles to decorate in place
+ * @param {object} spec room spec from ROOMS
+ * @param {{enemies: string[]}} area area the room belongs to
+ * @param {() => number} rnd seeded RNG
+ * @param {typeof import('../rng.js').randInt} randInt
  * @returns {{spawns: object[], props: object[]}}
  */
 export function decorate(grid, spec, area, rnd, randInt) {

@@ -119,3 +119,27 @@ test('boss rooms lock and unlock their doors', () => {
   assert.equal(room.getTile(0, 14), T.EMPTY);
   assert.ok(ROOMS.filter((r) => r.kind === 'boss').length === 6);
 });
+
+test('regression: spike pits hurt (feet sink into the non-solid spike row)', async () => {
+  const { step } = await import('../js/physics.js');
+  const room = new Room('t_west');
+  let px = -1;
+  for (let x = 0; x < room.grid.w && px < 0; x++) if (room.grid.get(x, room.grid.h - 2) === T.SPIKES) px = x;
+  assert.ok(px > 0, 't_west has a spike pit');
+  const body = { x: px * 16 + 2, y: (room.grid.h - 4) * 16, w: 12, h: 28, vx: 0, vy: 0 };
+  let hurt = false;
+  for (let i = 0; i < 60; i++) hurt = step(body, room.getTile).spikes || hurt;
+  assert.equal(hurt, true);
+});
+
+test('regression: pawn with the slide relic still drops through floor hatches', () => {
+  const room = new Room('w_gate');
+  const hatch = room.doors.find((d) => d.side === 'D');
+  const hero = heroIn(room, 'pawn');
+  hero.x = (hatch.col + 1) * 16;
+  hero.y = (room.grid.h - 2) * 16 - hero.h;
+  for (let i = 0; i < 5; i++) hero.update(idle(), room, new FakeGame());
+  hero.update({ down: { down: true, jump: true }, pressed: { jump: true } }, room, new FakeGame());
+  assert.equal(hero.slideT, 0, 'did not slide');
+  assert.ok(hero.dropT > 0, 'dropping through the hatch');
+});

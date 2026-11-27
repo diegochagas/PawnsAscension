@@ -15,10 +15,10 @@ function takenKey(s, prop) {
 }
 
 function grant(s, prop) {
-  s.data.owned = collect(s.data.owned, prop.item);
-  s.hero.forms = s.data.owned.forms;
-  s.hero.relics = s.data.owned.relics;
-  s.data.taken.push(takenKey(s, prop));
+  s.progress.owned = collect(s.progress.owned, prop.item);
+  s.hero.forms = s.progress.owned.forms;
+  s.hero.relics = s.progress.owned.relics;
+  s.progress.taken.push(takenKey(s, prop));
   s.refreshStats(prop.item === 'shard' || prop.item === 'crystal');
   s.fx.show(t(`got_${prop.item}`), 260, ['rook', 'knight', 'bishop', 'queen'].includes(prop.item) ? t('switch_hint') : '');
   s.fx.burst(prop.x, prop.y - 20, '#fff0a0', 40, 3);
@@ -36,14 +36,18 @@ export function interact(s, input) {
   for (const prop of s.room.props) {
     if (prop.decor || !near(s.hero, prop)) continue;
     if (prop.type === 'bonfire' && input.pressed.down) return 'bonfire';
-    if ((prop.type === 'altar' || prop.type === 'item') && !s.data.taken.includes(takenKey(s, prop))) grant(s, prop);
+    if ((prop.type === 'altar' || prop.type === 'item') && !s.progress.taken.includes(takenKey(s, prop))) grant(s, prop);
   }
   return null;
 }
 
-/** Rest at a bonfire: full heal, remember it as a warp target, save. */
+/**
+ * Rest at a bonfire: full heal, remember it as a warp target and respawn point, save.
+ * @param {import('./session.js').Session} s
+ */
 export function rest(s) {
-  if (!s.data.bonfires.includes(s.room.id)) s.data.bonfires.push(s.room.id);
+  if (!s.progress.bonfires.includes(s.room.id)) s.progress.bonfires.push(s.room.id);
+  s.progress.respawn = s.room.id;
   s.refreshStats(true);
   s.save();
   s.fx.show(t('saved'), 150);
@@ -63,7 +67,7 @@ function drawBonfire(ctx, prop, cam, tick) {
 function drawPickup(ctx, s, prop, cam, tick) {
   const x = prop.x - cam.x;
   const y = prop.y - cam.y;
-  const taken = s.data.taken.includes(takenKey(s, prop));
+  const taken = s.progress.taken.includes(takenKey(s, prop));
   if (prop.type === 'item') drawSprite(ctx, taken ? 'chest_open' : 'chest', x, y);
   else drawSprite(ctx, 'altar', x, y);
   if (taken) return;

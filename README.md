@@ -51,6 +51,14 @@ to any other bonfire you've lit.
 **Survive mode** (title menu) keeps the original wave game: a sealed arena, every promotion,
 endless waves and a boss every fifth wave.
 
+## Changes from v0.5
+
+The stage-select Adventure and the pencil-on-paper look were replaced by the connected
+castle and Higgsfield pixel art. Not carried over (yet): the dual skill tree (Inherited
+Memories / Board Fragments), the bonfire-distance flame icon, double essence from corrupted
+pieces, and the Survive shield. Level-ups now play the role of the skill tree; the tree
+could come back as SOTN-style relics.
+
 ## Controls
 
 | Action | Keyboard | Touch |

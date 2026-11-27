@@ -11,10 +11,11 @@ export class TitleScene {
   /** @param {{hasSave: () => boolean, start: (kind: string) => void, onLang: () => void}} hooks */
   constructor(hooks) {
     Object.assign(this, { hooks, cursor: 0, tick: 0, intro: -1 });
+    this.saveExists = hooks.hasSave(); // read once: parsing the save every frame is wasted work
   }
 
   items() {
-    const list = this.hooks.hasSave() ? ['continue'] : [];
+    const list = this.saveExists ? ['continue'] : [];
     return [...list, 'new_game', 'survive', 'language'];
   }
 

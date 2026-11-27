@@ -67,8 +67,8 @@ export class Hero {
 
   jump(input, room, game) {
     const onOneway = room.getTile(Math.floor(this.centerX / 16), Math.floor((this.feetY + 1) / 16)) === TILES.ONEWAY;
+    if (input.down.down && this.ground && onOneway) { this.dropT = 12; return; } // hatches beat the slide
     if (input.down.down && this.ground && this.can('slide')) return this.startSlide(game);
-    if (input.down.down && this.ground && onOneway) { this.dropT = 12; return; }
     if (this.ground || this.coyote > 0) { this.vy = PHYS.jumpV; this.coyote = 0; game.sound('jump'); return; }
     if (this.airJumps > 0 && this.can('doubleJump')) {
       this.airJumps--;

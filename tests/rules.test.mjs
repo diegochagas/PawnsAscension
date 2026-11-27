@@ -89,3 +89,16 @@ test('queen grants every power except the slide relic', () => {
   assert.equal(p.slide, false);
   assert.throws(() => collect(owned, 'sword'), /unknown item "sword"/);
 });
+
+test('regression: deaths and Continue start at the last bonfire, not the last pickup', async () => {
+  const { Session } = await import('../js/game/session.js');
+  const { rest } = await import('../js/game/props.js');
+  const storage = new FakeStorage();
+  const progress = { ...newGame(), room: 'w_save', respawn: 'w_save' };
+  const session = new Session(progress, storage);
+  rest(session);
+  session.enterRoom('w_item', null);
+  session.save(); // pickups auto-save in their own room
+  const reloaded = new Session(loadGame(storage), storage);
+  assert.equal(reloaded.room.id, 'w_save');
+});

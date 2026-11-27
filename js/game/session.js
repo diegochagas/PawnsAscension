@@ -1,5 +1,5 @@
 // One play session: the current room, the hero, enemies, projectiles and the
-// save data they change. Scenes drive it; combat/props modules act on it.
+// save progress they change. Scenes drive it; combat/props modules act on it.
 import { VIEW_W, VIEW_H, TILE, CELL_W, CELL_H, ENEMIES } from '../config.js';
 import { Room } from '../world/room.js';
 import { LINKS } from '../world/map.js';
@@ -18,19 +18,19 @@ import { t } from '../i18n.js';
 const AREA_KEYS = ['area_field', 'area_woods', 'area_cliffs', 'area_forge', 'area_battle', 'area_castle'];
 
 export class Session {
-  /** @param {ReturnType<import('../save.js').newGame>} data @param {Storage|null} storage */
-  constructor(data, storage) {
-    Object.assign(this, { data, storage, fx: new Effects(), tick: 0, cam: { x: 0, y: 0 }, fade: 0 });
+  /** @param {ReturnType<import('../save.js').newGame>} progress @param {Storage|null} storage */
+  constructor(progress, storage) {
+    Object.assign(this, { progress, storage, fx: new Effects(), tick: 0, cam: { x: 0, y: 0 }, fade: 0 });
     this.hero = new Hero(0, 0);
-    this.hero.forms = data.owned.forms;
-    this.hero.relics = data.owned.relics;
-    this.hero.form = data.form;
+    this.hero.forms = progress.owned.forms;
+    this.hero.relics = progress.owned.relics;
+    this.hero.form = progress.form;
     this.refreshStats(true);
-    this.enterRoom(data.room, null);
+    this.enterRoom(progress.respawn || progress.room, null);
     this.placeAtSpawn();
   }
 
-  stats() { return heroStats({ xp: this.data.xp, shards: this.data.owned.shards, crystals: this.data.owned.crystals }, this.hero.form); }
+  stats() { return heroStats({ xp: this.progress.xp, shards: this.progress.owned.shards, crystals: this.progress.owned.crystals }, this.hero.form); }
 
   refreshStats(full = false) {
     const s = this.stats();
@@ -52,13 +52,13 @@ export class Session {
   enterRoom(id, global) {
     const prevArea = this.room ? this.room.spec.area : -1;
     this.room = new Room(id);
-    this.data.room = id;
-    if (!this.data.visited.includes(id)) this.data.visited.push(id);
+    this.progress.room = id;
+    if (!this.progress.visited.includes(id)) this.progress.visited.push(id);
     this.enemies = this.room.spawns.map((s) => new Enemy(s.type, s.x, s.y));
     this.shots = [];
     this.boss = null;
-    this.bossArmed = this.room.spec.kind === 'boss' && !this.data.bosses.includes(this.room.spec.boss);
-    if (powersOf(this.data.owned).seals) this.room.openSeals();
+    this.bossArmed = this.room.spec.kind === 'boss' && !this.progress.bosses.includes(this.room.spec.boss);
+    if (powersOf(this.progress.owned).seals) this.room.openSeals();
     if (global) { this.hero.x = global.x - this.room.originX; this.hero.y = global.y - this.room.originY; }
     if (this.room.spec.area !== prevArea) this.announceArea();
     playMusic(this.room.spec.area);
@@ -160,7 +160,7 @@ export class Session {
   shake(frames) { this.fx.shake(frames); }
 
   onFormChange(hero) {
-    this.data.form = hero.form;
+    this.progress.form = hero.form;
     this.refreshStats();
     this.fx.burst(hero.centerX, hero.y + 12, '#f8f0ff', 24, 2.5);
     this.fx.number(hero.centerX, hero.y - 6, t(`f_${hero.form}`), '#f4e4b0');
@@ -169,9 +169,9 @@ export class Session {
 
   /** Grant experience (Black Essence) and handle level-ups. */
   gainXp(amount) {
-    const before = levelFor(this.data.xp);
-    this.data.xp += amount;
-    if (levelFor(this.data.xp) > before) {
+    const before = levelFor(this.progress.xp);
+    this.progress.xp += amount;
+    if (levelFor(this.progress.xp) > before) {
       this.refreshStats(true);
       this.fx.show(t('level_up'), 120);
       sfx('level');
@@ -179,8 +179,8 @@ export class Session {
   }
 
   save() {
-    this.data.form = this.hero.form;
-    if (this.storage) saveGame(this.storage, this.data);
+    this.progress.form = this.hero.form;
+    if (this.storage) saveGame(this.storage, this.progress);
   }
 }
 

@@ -12,12 +12,13 @@ import { t } from '../i18n.js';
 const BEST_KEY = 'pawns-ascension-survive-best';
 const BOSS_CYCLE = ['captain', 'thorn', 'ironrook', 'forge', 'queen'];
 
-function arenaData() {
-  const data = newGame();
-  data.room = 'w_boss';
-  data.bosses = ['thorn'];
-  data.owned = { forms: ['pawn', 'rook', 'knight', 'bishop', 'queen'], relics: ['slide'], seals: [], shards: 2, crystals: 2 };
-  return data;
+function arenaProgress() {
+  const progress = newGame();
+  progress.room = 'w_boss';
+  progress.respawn = 'w_boss';
+  progress.bosses = ['thorn'];
+  progress.owned = { forms: ['pawn', 'rook', 'knight', 'bishop', 'queen'], relics: ['slide'], seals: [], shards: 2, crystals: 2 };
+  return progress;
 }
 
 /**
@@ -34,7 +35,7 @@ export function waveEnemies(wave, seed = 7) {
 
 export class SurviveScene extends PlayScene {
   constructor(storage, goTo) {
-    super(arenaData(), null, goTo);
+    super(arenaProgress(), null, goTo);
     this.bestStorage = storage;
     this.wave = 0;
     this.s.room.lockDoors();
@@ -69,6 +70,10 @@ export class SurviveScene extends PlayScene {
     if (this.wave - 1 > best) this.bestStorage.setItem(BEST_KEY, String(this.wave - 1));
   }
 
+  best() {
+    try { return Number(this.bestStorage && this.bestStorage.getItem(BEST_KEY)) || 0; } catch { return 0; }
+  }
+
   updateEnd(input) {
     if (input.confirm()) this.goTo('title');
   }
@@ -79,7 +84,10 @@ export class SurviveScene extends PlayScene {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#f4e4b0';
     ctx.fillText(`${t('wave')} ${this.wave}`, VIEW_W / 2, 16);
-    if (this.mode === 'dead') ctx.fillText(t('survive_over', { n: this.wave - 1 }), VIEW_W / 2, 190);
+    if (this.mode === 'dead') {
+      ctx.fillText(t('survive_over', { n: this.wave - 1 }), VIEW_W / 2, 190);
+      ctx.fillText(`${t('best')}: ${this.best()}`, VIEW_W / 2, 206);
+    }
     ctx.textAlign = 'left';
   }
 }

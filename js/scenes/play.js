@@ -14,16 +14,16 @@ import { sfx, stopMusic } from '../audio.js';
 const PAUSE_TABS = ['map', 'status'];
 
 export class PlayScene {
-  /** @param {object} data save data @param {Storage|null} storage @param {(scene: string) => void} goTo */
-  constructor(data, storage, goTo) {
+  /** @param {object} progress save state @param {Storage|null} storage @param {(scene: string) => void} goTo */
+  constructor(progress, storage, goTo) {
     Object.assign(this, { storage, goTo, mode: 'play', menu: 0, tab: 0 });
-    this.s = new Session(data, storage);
+    this.s = new Session(progress, storage);
   }
 
   update(input) {
     const s = this.s;
     s.tick++;
-    s.data.playFrames++;
+    s.progress.playFrames++;
     if (this.mode === 'pause') return this.updatePause(input);
     if (this.mode === 'bonfire') return this.updateBonfire(input);
     if (this.mode === 'dead' || this.mode === 'victory') return this.updateEnd(input);
@@ -61,7 +61,7 @@ export class PlayScene {
 
   bonfireOptions() {
     const rooms = roomIndex();
-    const warps = this.s.data.bonfires.filter((id) => id !== this.s.room.id && rooms.has(id));
+    const warps = this.s.progress.bonfires.filter((id) => id !== this.s.room.id && rooms.has(id));
     return [{ kind: 'rest' }, ...warps.map((id) => ({ kind: 'warp', id, area: rooms.get(id).area }))];
   }
 
@@ -124,8 +124,8 @@ export class PlayScene {
     const heroCell = { x: spec.x + Math.floor(s.hero.centerX / 480), y: spec.y + Math.floor(s.hero.y / 272) };
     return {
       form: s.hero.form, level: s.stats().level, hp: s.hero.hp, maxHp: s.maxHp, mp: s.hero.mp, maxMp: s.maxMp,
-      essence: s.data.xp, boss: s.boss, areaTitle: s.areaTitle,
-      map: { visited: s.data.visited, current: s.room.id, heroCell, blink: s.tick % 40 < 20 },
+      essence: s.progress.xp, boss: s.boss, areaTitle: s.areaTitle,
+      map: { visited: s.progress.visited, current: s.room.id, heroCell, blink: s.tick % 40 < 20 },
     };
   }
 

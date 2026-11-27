@@ -40,18 +40,18 @@ function statusTab(ctx, s, hud) {
   ctx.font = FONT;
   const rows = [
     [t('level'), st.level], [t('hp'), `${s.hero.hp}/${s.maxHp}`], [t('mp'), `${s.hero.mp}/${s.maxMp}`],
-    [t('atk'), st.atk], [t('def'), st.def], [t('exp'), s.data.xp], [t('next'), Math.max(0, xpForLevel(st.level + 1) - s.data.xp)],
-    [t('explored'), `${explored(s.data.visited)}%`], [t('time'), clock(s.data.playFrames)],
+    [t('atk'), st.atk], [t('def'), st.def], [t('exp'), s.progress.xp], [t('next'), Math.max(0, xpForLevel(st.level + 1) - s.progress.xp)],
+    [t('explored'), `${explored(s.progress.visited)}%`], [t('time'), clock(s.progress.playFrames)],
   ];
   rows.forEach(([k, v], i) => { label(ctx, k, 110, 48 + i * 13, '#b8a8d8'); label(ctx, String(v), 230, 48 + i * 13, '#fff', 'right'); });
   formsList(ctx, s);
-  label(ctx, `${t('seals')}: ${BOSS_SEALS.filter((b) => s.data.owned.seals.includes(b)).length}/5`, 250, 178, '#ffd0d0');
+  label(ctx, `${t('seals')}: ${BOSS_SEALS.filter((b) => s.progress.owned.seals.includes(b)).length}/5`, 250, 178, '#ffd0d0');
 }
 
 function formsList(ctx, s) {
   label(ctx, t('forms'), 250, 48, '#b8a8d8');
   FORM_ORDER.forEach((f, i) => {
-    const owned = s.data.owned.forms.includes(f);
+    const owned = s.progress.owned.forms.includes(f);
     const color = f === s.hero.form ? '#ffe070' : owned ? '#fff' : '#4a4060';
     label(ctx, owned ? t(`f_${f}`) : '???', 250, 62 + i * 22, color);
     if (owned) label(ctx, t(`p_${f}`), 250, 72 + i * 22, '#8a7aaa');
